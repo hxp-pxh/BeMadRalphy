@@ -131,6 +131,6 @@ Rejected because:
 
 ## Related
 
-- [Beads documentation](https://github.com/beads-ai/beads)
+- [Beads documentation](https://github.com/steveyegge/beads)
 - [docs/architecture.md](../architecture.md) — Beads integration details
 - [ADR-001](001-cli-only.md) — CLI-only decision (Beads fits this model)

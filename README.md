@@ -25,9 +25,9 @@ Current scaffolding includes:
 
 BeMadRalphy is a CLI orchestrator that merges:
 
-- **[BMAD-METHOD](https://github.com/bmad-method/BMAD-METHOD)** — Agile AI-driven planning (product briefs, PRDs, architecture, epics & stories)
-- **[Beads](https://github.com/beads-ai/beads)** — Git-backed graph issue tracker and persistent AI memory
-- **[Ralphy](https://github.com/ralphy-ai/ralphy)** — Autonomous AI coding loop with multi-engine support
+- **[BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD)** — Agile AI-driven planning (product briefs, PRDs, architecture, epics & stories)
+- **[Beads](https://github.com/steveyegge/beads)** — Git-backed graph issue tracker and persistent AI memory
+- **[Ralphy](https://github.com/michaelshimeles/ralphy)** — Autonomous AI coding loop with multi-engine support ([site](https://ralphy.goshen.fyi/))
 - **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** — Living specifications and delta-based change tracking
 
 Into a single, seamless pipeline that takes you from a rough idea to a deployed, documented, and tested codebase — with minimal human intervention.
@@ -375,7 +375,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
 
 BeMadRalphy builds on the shoulders of giants:
 
-- [BMAD-METHOD](https://github.com/bmad-method/BMAD-METHOD) — The planning framework
-- [Beads](https://github.com/beads-ai/beads) — The task graph and memory layer
-- [Ralphy](https://github.com/ralphy-ai/ralphy) — The execution loop inspiration
+- [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) — The planning framework
+- [Beads](https://github.com/steveyegge/beads) — The task graph and memory layer
+- [Ralphy](https://github.com/michaelshimeles/ralphy) — The execution loop inspiration ([site](https://ralphy.goshen.fyi/))
 - [OpenSpec](https://github.com/Fission-AI/OpenSpec) — The living spec model
