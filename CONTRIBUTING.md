@@ -30,7 +30,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDU
 
 - Node.js 18+ or Bun 1.0+
 - Git
-- pnpm (recommended) or npm
+- npm (recommended)
 
 ### Setup (scaffolding stage)
 
@@ -43,10 +43,10 @@ cd BeMadRalphy
 git remote add upstream https://github.com/hxp-pxh/BeMadRalphy.git
 
 # Install dependencies
-pnpm install
+npm install
 
 # Run tests to verify setup
-pnpm test
+npm test
 ```
 
 ---
@@ -72,9 +72,9 @@ pnpm test
 4. **Run checks** before committing (once available):
 
    ```bash
-   pnpm lint
-   pnpm typecheck
-   pnpm test
+   npm run lint
+   npm run typecheck
+   npm test
    ```
 
 5. **Commit** using conventional commits (see below).
@@ -235,7 +235,7 @@ export async function storiesToBeads(
 Run formatting:
 
 ```bash
-pnpm format
+npm run format
 ```
 
 ### File Organization
@@ -270,16 +270,16 @@ src/
 
 ```bash
 # Run all tests
-pnpm test
+npm test
 
 # Run tests in watch mode
-pnpm test:watch
+npm run test:watch
 
 # Run tests with coverage
-pnpm test:coverage
+npm run test:coverage
 
 # Run specific test file
-pnpm test src/phases/intake.test.ts
+npm test -- src/phases/intake.test.ts
 ```
 
 ### Test Structure

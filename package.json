@@ -24,7 +24,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "commander": "^12.1.0"
+    "commander": "^12.1.0",
+    "yaml": "^2.4.2"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",

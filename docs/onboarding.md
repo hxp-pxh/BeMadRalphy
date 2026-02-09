@@ -24,7 +24,7 @@ Before you begin, ensure you have the following installed:
 | Tool    | Version | Check command    |
 | ------- | ------- | ---------------- |
 | Node.js | 18+     | `node --version` |
-| pnpm    | 8+      | `pnpm --version` |
+| npm     | 9+      | `npm --version`  |
 | Git     | 2.30+   | `git --version`  |
 
 Optional (for testing engine integrations):
@@ -47,19 +47,19 @@ cd BeMadRalphy
 ### 2. Install dependencies
 
 ```bash
-pnpm install
+npm install
 ```
 
 ### 3. Build the project
 
 ```bash
-pnpm build
+npm run build
 ```
 
 ### 4. Link for local testing
 
 ```bash
-pnpm link --global
+npm link
 ```
 
 Now you can run `bemadralphy` from anywhere.
@@ -67,7 +67,7 @@ Now you can run `bemadralphy` from anywhere.
 ### 5. Verify setup
 
 ```bash
-pnpm test
+npm test
 bemadralphy --version
 ```
 
@@ -78,7 +78,7 @@ bemadralphy --version
 ### Development mode (with watch)
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 This runs the TypeScript compiler in watch mode. Changes to `src/` are automatically recompiled.
@@ -86,8 +86,8 @@ This runs the TypeScript compiler in watch mode. Changes to `src/` are automatic
 ### Run the CLI directly
 
 ```bash
-# Using ts-node
-pnpm tsx src/cli.ts --help
+# Using tsx
+npm run dev -- --help
 
 # Or after building
 node dist/cli.js --help
@@ -116,31 +116,31 @@ bemadralphy run --dry-run
 ### Run all tests
 
 ```bash
-pnpm test
+npm test
 ```
 
 ### Run tests in watch mode
 
 ```bash
-pnpm test:watch
+npm run test:watch
 ```
 
 ### Run tests with coverage
 
 ```bash
-pnpm test:coverage
+npm run test:coverage
 ```
 
 ### Run a specific test file
 
 ```bash
-pnpm test src/phases/intake.test.ts
+npm test -- src/phases/intake.test.ts
 ```
 
 ### Run tests matching a pattern
 
 ```bash
-pnpm test -t "should extract stack decisions"
+npm test -- -t "should extract stack decisions"
 ```
 
 ---
@@ -249,7 +249,7 @@ Templates are in `src/phases/steering.ts`. Each template is a function that take
 
 ```bash
 # Run with verbose output
-pnpm test --reporter=verbose src/phases/intake.test.ts
+npm test -- --reporter=verbose src/phases/intake.test.ts
 
 # Run with debugger
 node --inspect-brk node_modules/.bin/vitest run src/phases/intake.test.ts
@@ -264,13 +264,13 @@ node --inspect-brk node_modules/.bin/vitest run src/phases/intake.test.ts
 Make sure you've linked the package:
 
 ```bash
-pnpm link --global
+npm link
 ```
 
 Or run directly:
 
 ```bash
-pnpm tsx src/cli.ts
+npm run dev -- --help
 ```
 
 ### Tests failing with "Cannot find module"
@@ -278,7 +278,7 @@ pnpm tsx src/cli.ts
 Rebuild the project:
 
 ```bash
-pnpm build
+npm run build
 ```
 
 ### TypeScript errors after pulling
@@ -286,8 +286,8 @@ pnpm build
 Dependencies may have changed:
 
 ```bash
-pnpm install
-pnpm build
+npm install
+npm run build
 ```
 
 ### Engine adapter not working

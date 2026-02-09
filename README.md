@@ -8,7 +8,7 @@
 
 ## Status
 
-BeMadRalphy has an initial TypeScript scaffolding in this repo. The CLI commands are stubbed and not yet functional, and the npm package is not released. The sections below describe the **planned** interface and architecture.
+BeMadRalphy has an initial TypeScript scaffolding in this repo. The CLI commands are stubbed and not yet functional, and the npm package is not released. The sections below describe the **planned** interface and architecture, with the current scaffolding focused on file generation and placeholders.
 
 ---
 
@@ -126,7 +126,7 @@ flowchart TD
 
 ## CLI Commands (planned)
 
-The following commands represent the intended CLI interface. Current implementations are placeholders.
+The following commands represent the intended CLI interface. Current implementations are placeholders and may only create placeholder outputs.
 
 ```bash
 # Initialize a new project
@@ -149,7 +149,7 @@ npx bemadralphy status
 
 ## The `idea.md` File
 
-BeMadRalphy starts with an `idea.md` file in your project root. It can be as simple or detailed as you want:
+BeMadRalphy starts with an `idea.md` file in your project root. It can be as simple or detailed as you want. The current scaffolding writes intake results to `.bemadralphy/intake.yaml`.
 
 ### Minimal example
 
@@ -222,7 +222,7 @@ For subsequent brownfield changes, new requirements are expressed as **delta spe
 
 ```
 your-project/
-├── .bemadralphy/          # State, cost log, failures log
+├── .bemadralphy/          # State, cost log, failures log, intake.yaml
 │   ├── state.yaml
 │   ├── cost.log
 │   └── failures.log
@@ -250,7 +250,7 @@ your-project/
 ├── CLAUDE.md              # Claude-specific steering
 ├── .cursorrules           # Cursor-specific steering
 ├── idea.md                # Your original idea
-├── intake.yaml            # Processed intake
+├── .bemadralphy/intake.yaml  # Processed intake
 ├── tasks.md               # Human-readable task list
 ├── package.json
 └── README.md

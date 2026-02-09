@@ -1,3 +1,4 @@
+import { CostTracker } from './cost.js';
 import {
     executePhase,
     explorePhase,
@@ -11,6 +12,7 @@ import {
     type PipelineContext,
     type PipelineMode,
 } from './phases/index.js';
+import { saveState } from './state.js';
 import { logInfo } from './utils/logging.js';
 
 export type RunOptions = {
@@ -34,17 +36,44 @@ export async function runPipeline(options: RunOptions): Promise<void> {
     runId: new Date().toISOString(),
     mode: options.mode,
     dryRun: options.dryRun,
+    projectRoot: process.cwd(),
+    engine: options.engine,
+    planningEngine: options.planningEngine,
+    maxParallel: options.maxParallel,
+    budget: options.budget,
+    brownfield: options.brownfield,
+    swarm: options.swarm,
+    createPr: options.createPr,
   };
 
   logInfo(`run: starting pipeline (mode=${options.mode})`);
+  const cost = new CostTracker();
+
   let ctx = await intakePhase(context);
+  await saveState(ctx.projectRoot, stateFrom(ctx, 'intake'));
+
   ctx = await planningPhase(ctx);
+  await saveState(ctx.projectRoot, stateFrom(ctx, 'planning'));
+
   ctx = await steeringPhase(ctx);
+  await saveState(ctx.projectRoot, stateFrom(ctx, 'steering'));
+
   ctx = await scaffoldPhase(ctx);
+  await saveState(ctx.projectRoot, stateFrom(ctx, 'scaffold'));
+
   ctx = await syncPhase(ctx);
+  await saveState(ctx.projectRoot, stateFrom(ctx, 'sync'));
+
   ctx = await executePhase(ctx);
+  await saveState(ctx.projectRoot, stateFrom(ctx, 'execute'));
+
   ctx = await verifyPhase(ctx);
+  await saveState(ctx.projectRoot, stateFrom(ctx, 'verify'));
+
   ctx = await postPhase(ctx);
+  await saveState(ctx.projectRoot, stateFrom(ctx, 'post'));
+
+  await cost.persist(ctx.projectRoot);
 
   logInfo(`run: completed pipeline (runId=${ctx.runId})`);
 }
@@ -55,4 +84,13 @@ export async function runExplore(query: string): Promise<void> {
 
 export async function runStatus(): Promise<void> {
   logInfo('status: not implemented yet');
+}
+
+function stateFrom(ctx: PipelineContext, phase: string) {
+  return {
+    phase,
+    mode: ctx.mode,
+    engine: ctx.engine,
+    startedAt: ctx.runId,
+  };
 }
