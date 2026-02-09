@@ -1,6 +1,6 @@
 # BeMadRalphy Architecture
 
-This document describes the high-level architecture of BeMadRalphy, including its internal module structure, data flow, and key design decisions.
+This document describes the **target** architecture of BeMadRalphy, including its internal module structure, data flow, and key design decisions. The codebase has not been implemented yet.
 
 ## Overview
 
@@ -128,6 +128,7 @@ idea.md → Detect mode → Classify type → Extract decisions → Q&A → inta
 ### Phase 2: Planning
 
 **Greenfield:**
+
 ```
 intake.yaml → BMAD Analyst → Product Brief
                    ↓
@@ -139,6 +140,7 @@ intake.yaml → BMAD Analyst → Product Brief
 ```
 
 **Brownfield:**
+
 ```
 intake.yaml → Codebase analysis → Proposal → Spec deltas → Design → Tasks
 ```
@@ -171,6 +173,7 @@ interface EngineAdapter {
 ```
 
 Adapters handle the specifics of invoking each AI engine CLI or API, including:
+
 - Prompt assembly
 - Permission flags (e.g., `--dangerously-skip-permissions` for Claude)
 - Output parsing
@@ -179,6 +182,7 @@ Adapters handle the specifics of invoking each AI engine CLI or API, including:
 ### Swarm Detection
 
 The swarm detector checks:
+
 1. Which engine is selected
 2. Whether the engine supports native swarm
 3. Whether the required CLI/API version is available
@@ -214,6 +218,7 @@ started_at: 2026-02-09T10:00:00Z
 ```
 
 This enables:
+
 - Resuming after interruption
 - Tracking progress across sessions
 - Cost monitoring
@@ -272,13 +277,13 @@ Conflicts are deferred or re-routed to avoid race conditions.
 
 ## Error Recovery
 
-| Scenario | Action |
-|----------|--------|
-| Task fails | Retry up to 3 times (configurable) |
-| Blocking failure | Mark dependents as `blocked`, continue others |
-| Build breaks | Auto mode: attempt fix-build meta-task; Hybrid: escalate |
-| Rate limit | Exponential backoff; pause and notify if persistent |
-| Auth failure | Clear error message with setup instructions |
+| Scenario         | Action                                                   |
+| ---------------- | -------------------------------------------------------- |
+| Task fails       | Retry up to 3 times (configurable)                       |
+| Blocking failure | Mark dependents as `blocked`, continue others            |
+| Build breaks     | Auto mode: attempt fix-build meta-task; Hybrid: escalate |
+| Rate limit       | Exponential backoff; pause and notify if persistent      |
+| Auth failure     | Clear error message with setup instructions              |
 
 All failures logged to `.bemadralphy/failures.log`.
 
@@ -286,25 +291,25 @@ All failures logged to `.bemadralphy/failures.log`.
 
 ## Configuration Files
 
-| File | Purpose |
-|------|---------|
-| `.bemadralphy/state.yaml` | Pipeline state |
-| `.bemadralphy/cost.log` | Per-task cost tracking |
-| `.bemadralphy/failures.log` | Error logs |
-| `intake.yaml` | Processed intake decisions |
-| `tasks.md` | Human-readable task list (regenerated) |
+| File                        | Purpose                                |
+| --------------------------- | -------------------------------------- |
+| `.bemadralphy/state.yaml`   | Pipeline state                         |
+| `.bemadralphy/cost.log`     | Per-task cost tracking                 |
+| `.bemadralphy/failures.log` | Error logs                             |
+| `intake.yaml`               | Processed intake decisions             |
+| `tasks.md`                  | Human-readable task list (regenerated) |
 
 ---
 
 ## External Dependencies
 
-| Dependency | Required | Purpose |
-|------------|----------|---------|
-| Node.js 18+ or Bun 1.0+ | Yes | Runtime |
-| Git | Yes | Version control |
-| Beads CLI (`bd`) | Yes | Task graph (installed by `init`) |
-| BMAD | Yes | Planning workflows (installed by `init`) |
-| AI engine CLI | At least one | Execution (claude, cursor, codex, etc.) |
+| Dependency              | Required     | Purpose                                  |
+| ----------------------- | ------------ | ---------------------------------------- |
+| Node.js 18+ or Bun 1.0+ | Yes          | Runtime                                  |
+| Git                     | Yes          | Version control                          |
+| Beads CLI (`bd`)        | Yes          | Task graph (installed by `init`)         |
+| BMAD                    | Yes          | Planning workflows (installed by `init`) |
+| AI engine CLI           | At least one | Execution (claude, cursor, codex, etc.)  |
 
 ---
 

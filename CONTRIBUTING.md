@@ -2,6 +2,8 @@
 
 Thank you for your interest in contributing to BeMadRalphy! This document provides guidelines and instructions for contributing.
 
+> **Note:** The repository is currently documentation-first. There is no code scaffolding yet, so build/test scripts are not available. The workflow below describes the **intended** contribution process once the implementation begins.
+
 ## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
@@ -30,7 +32,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDU
 - Git
 - pnpm (recommended) or npm
 
-### Setup
+### Setup (when code scaffolding exists)
 
 ```bash
 # Fork the repository on GitHub, then clone your fork
@@ -67,7 +69,7 @@ pnpm test
 
 3. **Make your changes** with tests.
 
-4. **Run checks** before committing:
+4. **Run checks** before committing (once available):
 
    ```bash
    pnpm lint
@@ -85,16 +87,17 @@ pnpm test
 
 Use descriptive branch names with prefixes:
 
-| Prefix | Use case |
-|--------|----------|
-| `feat/` | New features |
-| `fix/` | Bug fixes |
-| `docs/` | Documentation changes |
+| Prefix      | Use case                              |
+| ----------- | ------------------------------------- |
+| `feat/`     | New features                          |
+| `fix/`      | Bug fixes                             |
+| `docs/`     | Documentation changes                 |
 | `refactor/` | Code refactoring (no behavior change) |
-| `test/` | Adding or updating tests |
-| `chore/` | Maintenance tasks, dependencies |
+| `test/`     | Adding or updating tests              |
+| `chore/`    | Maintenance tasks, dependencies       |
 
 Examples:
+
 - `feat/add-kimi-engine-adapter`
 - `fix/beads-writer-race-condition`
 - `docs/update-onboarding-guide`
@@ -115,16 +118,16 @@ We use [Conventional Commits](https://www.conventionalcommits.org/). Format:
 
 ### Types
 
-| Type | Description |
-|------|-------------|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `docs` | Documentation only |
-| `style` | Formatting, no code change |
+| Type       | Description                                             |
+| ---------- | ------------------------------------------------------- |
+| `feat`     | New feature                                             |
+| `fix`      | Bug fix                                                 |
+| `docs`     | Documentation only                                      |
+| `style`    | Formatting, no code change                              |
 | `refactor` | Code change that neither fixes a bug nor adds a feature |
-| `perf` | Performance improvement |
-| `test` | Adding or correcting tests |
-| `chore` | Maintenance, dependencies, build |
+| `perf`     | Performance improvement                                 |
+| `test`     | Adding or correcting tests                              |
+| `chore`    | Maintenance, dependencies, build                        |
 
 ### Scope (optional)
 
@@ -198,7 +201,7 @@ feat(scaffold): generate vitest config (bd-a1b2)
 
 ### TSDoc Example
 
-```typescript
+````typescript
 /**
  * Converts BMAD stories to Beads issues.
  *
@@ -215,11 +218,11 @@ feat(scaffold): generate vitest config (bd-a1b2)
  */
 export async function storiesToBeads(
   stories: string[],
-  options?: ConversionOptions
+  options?: ConversionOptions,
 ): Promise<string[]> {
   // ...
 }
-```
+````
 
 ### Formatting
 

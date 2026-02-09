@@ -2,6 +2,8 @@
 
 Welcome to BeMadRalphy! This guide will help you get set up for local development.
 
+> **Note:** The repository is currently documentation-first. There is no code scaffolding yet, so the commands below are **planned** for when implementation begins.
+
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
@@ -19,20 +21,21 @@ Welcome to BeMadRalphy! This guide will help you get set up for local developmen
 
 Before you begin, ensure you have the following installed:
 
-| Tool | Version | Check command |
-|------|---------|---------------|
-| Node.js | 18+ | `node --version` |
-| pnpm | 8+ | `pnpm --version` |
-| Git | 2.30+ | `git --version` |
+| Tool    | Version | Check command    |
+| ------- | ------- | ---------------- |
+| Node.js | 18+     | `node --version` |
+| pnpm    | 8+      | `pnpm --version` |
+| Git     | 2.30+   | `git --version`  |
 
 Optional (for testing engine integrations):
+
 - Claude CLI (`claude --version`)
 - Cursor CLI
 - Codex CLI
 
 ---
 
-## Setup
+## Setup (planned)
 
 ### 1. Clone the repository
 
@@ -70,7 +73,7 @@ bemadralphy --version
 
 ---
 
-## Running Locally
+## Running Locally (planned)
 
 ### Development mode (with watch)
 
@@ -108,7 +111,7 @@ bemadralphy run --dry-run
 
 ---
 
-## Running Tests
+## Running Tests (planned)
 
 ### Run all tests
 
@@ -178,12 +181,12 @@ BeMadRalphy/
 
 ### Key files to know
 
-| File | Purpose |
-|------|---------|
-| `src/cli.ts` | CLI entry point; defines commands and flags |
-| `src/phases/*.ts` | Each phase of the pipeline |
-| `src/engines/types.ts` | Common interface for engine adapters |
-| `src/state.ts` | Pipeline state management |
+| File                   | Purpose                                     |
+| ---------------------- | ------------------------------------------- |
+| `src/cli.ts`           | CLI entry point; defines commands and flags |
+| `src/phases/*.ts`      | Each phase of the pipeline                  |
+| `src/engines/types.ts` | Common interface for engine adapters        |
+| `src/state.ts`         | Pipeline state management                   |
 
 ---
 

@@ -19,11 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet
 
-## [0.1.0] - 2026-02-09
+## [0.1.0] - 2026-02-09 (docs-only, not released)
 
 ### Added
 
-- Initial project scaffold
+- Initial documentation scaffold
 - Comprehensive README with pipeline documentation
 - CONTRIBUTING guide with development workflow
 - MIT LICENSE
@@ -40,6 +40,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Feature request issue template
 - `.gitignore` for Node/Bun/Deno projects
 - `.editorconfig` for consistent formatting
-
-[Unreleased]: https://github.com/hxp-pxh/BeMadRalphy/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/hxp-pxh/BeMadRalphy/releases/tag/v0.1.0

@@ -5,7 +5,10 @@
 > End-to-end automated coding: idea in → planning → task graph → swarm-aware execution → living specs → deployment.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![npm](https://img.shields.io/npm/v/bemadralphy)](https://www.npmjs.com/package/bemadralphy)
+
+## Status
+
+BeMadRalphy is currently in the design/documentation stage. The CLI and npm package are not released yet. The sections below describe the **planned** interface and architecture.
 
 ---
 
@@ -81,47 +84,49 @@ flowchart TD
   Coherence --> CodeReview --> Docs --> Deploy
 ```
 
-| Phase | What happens |
-|-------|--------------|
-| **0. Explore** | Optional. Investigate codebase (brownfield) or problem domain (greenfield) before committing to a plan. |
-| **1. Idea Intake** | Read `idea.md`, detect greenfield vs brownfield, classify project type, ask remaining questions, output `intake.yaml`. |
-| **2. Planning** | Greenfield: product brief → PRD → architecture → stories. Brownfield: proposal → spec deltas → design → tasks. |
-| **3. Agent Steering** | Generate 14+ steering files for every IDE/agent (Cursor, Claude, Copilot, Windsurf, Cline, Kiro, etc.). |
-| **4. Scaffolding** | `git init`, monorepo structure, `package.json`, `.gitignore`, `.env`, test/lint/CI configs. |
-| **5. Task Sync** | Convert stories to Beads issues (`bd create`, `bd dep add`). Generate `tasks.md`. Cost estimate. |
-| **6. Execution** | Swarm-aware Beads-driven loop. Native swarm for Claude/Kimi/Codex; process-level parallelism for others. |
-| **7. Verification** | Semantic check: completeness, correctness, coherence. Fix-up tasks fed back to Beads if needed. |
-| **8. Post-Execution** | Code review, full docs suite, living specs, deployment, release management, final summary. |
+| Phase                 | What happens                                                                                                           |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **0. Explore**        | Optional. Investigate codebase (brownfield) or problem domain (greenfield) before committing to a plan.                |
+| **1. Idea Intake**    | Read `idea.md`, detect greenfield vs brownfield, classify project type, ask remaining questions, output `intake.yaml`. |
+| **2. Planning**       | Greenfield: product brief → PRD → architecture → stories. Brownfield: proposal → spec deltas → design → tasks.         |
+| **3. Agent Steering** | Generate 14+ steering files for every IDE/agent (Cursor, Claude, Copilot, Windsurf, Cline, Kiro, etc.).                |
+| **4. Scaffolding**    | `git init`, monorepo structure, `package.json`, `.gitignore`, `.env`, test/lint/CI configs.                            |
+| **5. Task Sync**      | Convert stories to Beads issues (`bd create`, `bd dep add`). Generate `tasks.md`. Cost estimate.                       |
+| **6. Execution**      | Swarm-aware Beads-driven loop. Native swarm for Claude/Kimi/Codex; process-level parallelism for others.               |
+| **7. Verification**   | Semantic check: completeness, correctness, coherence. Fix-up tasks fed back to Beads if needed.                        |
+| **8. Post-Execution** | Code review, full docs suite, living specs, deployment, release management, final summary.                             |
 
 ---
 
-## Supported AI Engines
+## Planned AI Engine Support
 
-| Engine | Native Swarm | Notes |
-|--------|--------------|-------|
+| Engine                 | Native Swarm      | Notes                       |
+| ---------------------- | ----------------- | --------------------------- |
 | Claude Code (Opus 4.6) | Yes (Agent Teams) | Lead agent spawns teammates |
-| Kimi K2.5 | Yes (PARL) | Up to 100 sub-agents |
-| OpenAI Codex | Yes (Agents SDK) | File reservations |
-| Cursor | No | Process-level parallelism |
-| OpenCode | No | Process-level parallelism |
-| Qwen | No | Process-level parallelism |
-| Droid | No | Process-level parallelism |
-| GitHub Copilot | No | Process-level parallelism |
-| Gemini | No | Process-level parallelism |
+| Kimi K2.5              | Yes (PARL)        | Up to 100 sub-agents        |
+| OpenAI Codex           | Yes (Agents SDK)  | File reservations           |
+| Cursor                 | No                | Process-level parallelism   |
+| OpenCode               | No                | Process-level parallelism   |
+| Qwen                   | No                | Process-level parallelism   |
+| Droid                  | No                | Process-level parallelism   |
+| GitHub Copilot         | No                | Process-level parallelism   |
+| Gemini                 | No                | Process-level parallelism   |
 
 ---
 
 ## Autonomy Modes
 
-| Mode | Description |
-|------|-------------|
-| **Full Autonomous** (`--mode auto`) | Zero pauses after Q&A. Everything runs unattended. |
-| **Hybrid** (`--mode hybrid`) | Planning gates only (after brief, PRD, architecture, stories). Execution is autonomous. Default. |
-| **Supervised** (`--mode supervised`) | Planning gates + execution milestones (after scaffolding, each epic, before deployment). |
+| Mode                                 | Description                                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| **Full Autonomous** (`--mode auto`)  | Zero pauses after Q&A. Everything runs unattended.                                               |
+| **Hybrid** (`--mode hybrid`)         | Planning gates only (after brief, PRD, architecture, stories). Execution is autonomous. Default. |
+| **Supervised** (`--mode supervised`) | Planning gates + execution milestones (after scaffolding, each epic, before deployment).         |
 
 ---
 
-## CLI Commands
+## CLI Commands (planned)
+
+The following commands are the intended CLI interface and are not available yet.
 
 ```bash
 # Initialize a new project
@@ -186,9 +191,9 @@ BeMadRalphy extracts what you've already decided and only asks about the rest.
 
 ## Greenfield vs Brownfield
 
-| Mode | When | What happens |
-|------|------|--------------|
-| **Greenfield** | No existing codebase | Full pipeline: idea → PRD → architecture → stories → build from scratch |
+| Mode           | When                       | What happens                                                                         |
+| -------------- | -------------------------- | ------------------------------------------------------------------------------------ |
+| **Greenfield** | No existing codebase       | Full pipeline: idea → PRD → architecture → stories → build from scratch              |
 | **Brownfield** | Existing codebase detected | Analyze codebase, generate proposal + spec deltas, skip scaffolding, execute changes |
 
 Brownfield is auto-detected (looks for `package.json`, `src/`, etc.) or forced with `--brownfield`.
@@ -213,7 +218,7 @@ For subsequent brownfield changes, new requirements are expressed as **delta spe
 
 ---
 
-## Project Structure (after scaffolding)
+## Target Project Structure (after scaffolding)
 
 ```
 your-project/
@@ -253,7 +258,7 @@ your-project/
 
 ---
 
-## Configuration
+## Configuration (planned)
 
 ### `.bemadralphy/state.yaml`
 
@@ -271,20 +276,22 @@ cost_usd: 3.47
 
 ### Flags
 
-| Flag | Description |
-|------|-------------|
-| `--mode auto\|hybrid\|supervised` | Autonomy mode |
-| `--engine <name>` | AI engine to use |
-| `--planning-engine <name>` | Override engine for planning phase only |
-| `--max-parallel N` | Max parallel tasks (default: 3) |
-| `--budget N` | Cost cap in USD |
-| `--brownfield` | Force brownfield mode |
-| `--swarm native\|process\|off` | Override swarm detection |
-| `--create-pr` | Create PRs for each task |
+| Flag                              | Description                             |
+| --------------------------------- | --------------------------------------- |
+| `--mode auto\|hybrid\|supervised` | Autonomy mode                           |
+| `--engine <name>`                 | AI engine to use                        |
+| `--planning-engine <name>`        | Override engine for planning phase only |
+| `--max-parallel N`                | Max parallel tasks (default: 3)         |
+| `--budget N`                      | Cost cap in USD                         |
+| `--brownfield`                    | Force brownfield mode                   |
+| `--swarm native\|process\|off`    | Override swarm detection                |
+| `--create-pr`                     | Create PRs for each task                |
 
 ---
 
-## Installation
+## Installation (planned)
+
+The CLI is not published to npm yet. These commands represent the intended install flow.
 
 ```bash
 # Run directly with npx
@@ -304,7 +311,7 @@ bemadralphy init
 
 ---
 
-## Quick Start
+## Quick Start (planned)
 
 ```bash
 # 1. Create a new directory
@@ -321,6 +328,7 @@ npx bemadralphy run
 ```
 
 That's it. BeMadRalphy will:
+
 1. Ask clarifying questions about your stack preferences
 2. Generate a full PRD and architecture
 3. Create all the steering files for your AI agents
@@ -334,6 +342,7 @@ That's it. BeMadRalphy will:
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
+
 - Fork/clone workflow
 - Branch naming conventions
 - Commit message format
