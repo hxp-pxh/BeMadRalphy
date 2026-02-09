@@ -140,6 +140,11 @@ The following commands represent the intended CLI interface. Current implementat
 # Initialize a new project
 npx bemadralphy init
 
+# Notes:
+# - Creates .bemadralphy/, openspec/, and _bmad-output/
+# - Attempts `bd init` if Beads is installed
+# - Warns if BMAD CLI is missing
+
 # Run the full pipeline
 npx bemadralphy run
 
@@ -212,7 +217,7 @@ Brownfield is auto-detected (looks for `package.json`, `src/`, etc.) or forced w
 
 After the initial build, BeMadRalphy generates living specifications in `openspec/specs/`:
 
-```
+```text
 openspec/
 ├── specs/
 │   ├── auth/spec.md
@@ -228,7 +233,7 @@ For subsequent brownfield changes, new requirements are expressed as **delta spe
 
 ## Target Project Structure (after scaffolding)
 
-```
+```text
 your-project/
 ├── .bemadralphy/          # State, cost log, failures log, intake.yaml
 │   ├── state.yaml

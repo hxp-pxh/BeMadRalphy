@@ -2,6 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { PipelineContext } from '../phases/types.js';
 import { logInfo } from '../utils/logging.js';
+import { commandExists } from '../utils/exec.js';
 import { validateBmadOutputs } from './validate.js';
 
 export async function runPlanning(ctx: PipelineContext): Promise<void> {
@@ -19,6 +20,16 @@ export async function runPlanning(ctx: PipelineContext): Promise<void> {
   if (ctx.dryRun) {
     logInfo('planning: dry-run, skipping BMAD invocation');
     return;
+  }
+
+  const hasBmad = await commandExists('bmad');
+  if (hasBmad) {
+    logInfo(
+      `planning: BMAD CLI detected (planningEngine=${ctx.planningEngine ?? 'default'}). ` +
+        'Automated invocation not implemented; using placeholders.',
+    );
+  } else {
+    logInfo('planning: BMAD CLI not found; using placeholders');
   }
 
   await writeIfMissing(

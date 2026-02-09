@@ -102,6 +102,9 @@ mkdir ~/test-project && cd ~/test-project
 # Initialize BeMadRalphy
 bemadralphy init
 
+# This creates .bemadralphy/, openspec/, and _bmad-output/ and runs `bd init`
+# if the Beads CLI is available.
+
 # Create an idea file
 echo "A simple todo app with local storage" > idea.md
 
