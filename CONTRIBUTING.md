@@ -108,7 +108,7 @@ Examples:
 
 We use [Conventional Commits](https://www.conventionalcommits.org/). Format:
 
-```
+```text
 <type>(<scope>): <description>
 
 [optional body]
@@ -135,7 +135,7 @@ The module or area affected: `intake`, `planning`, `steering`, `scaffold`, `exec
 
 ### Examples
 
-```
+```text
 feat(engines): add Kimi K2.5 adapter
 
 Implements the Kimi K2.5 engine adapter using the HTTP API.
@@ -144,7 +144,7 @@ Supports both single-agent and Agent Swarm (PARL) modes.
 Closes #42
 ```
 
-```
+```text
 fix(beads): serialize writer operations to prevent JSONL conflicts
 
 Adds a single-writer queue for all bd close/update operations.
@@ -156,7 +156,7 @@ Fixes #57
 
 If you're working on a task tracked in Beads, include the Beads ID in your commit:
 
-```
+```text
 feat(scaffold): generate vitest config (bd-a1b2)
 ```
 
@@ -240,7 +240,7 @@ npm run format
 
 ### File Organization
 
-```
+```text
 src/
 ├── cli.ts              # CLI entry point
 ├── phases/             # Pipeline phases
@@ -284,7 +284,7 @@ npm test -- src/phases/intake.test.ts
 
 ### Test Structure
 
-- Tests live next to source files: `foo.ts` → `foo.test.ts`
+- Tests live in the `tests/` directory (e.g., `tests/intake.test.ts`)
 - Use descriptive test names: `it('should extract stack decisions from YAML front-matter')`
 - Test both happy path and error cases
 - Mock external dependencies (AI engines, file system, Beads CLI)

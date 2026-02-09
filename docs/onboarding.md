@@ -122,6 +122,8 @@ bemadralphy run --dry-run
 npm test
 ```
 
+Tests live in the `tests/` directory (e.g., `tests/intake.test.ts`).
+
 ### Run tests in watch mode
 
 ```bash
