@@ -15,8 +15,8 @@ import {
     type PipelineMode,
 } from './phases/index.js';
 import { loadState, saveState } from './state.js';
-import { logInfo } from './utils/logging.js';
 import { commandExists, runCommand } from './utils/exec.js';
+import { logInfo } from './utils/logging.js';
 
 export type RunOptions = {
   mode: PipelineMode;
@@ -115,9 +115,7 @@ export async function runStatus(): Promise<void> {
     return;
   }
 
-  logInfo(
-    `status: phase=${state.phase} mode=${state.mode} engine=${state.engine ?? 'n/a'}`,
-  );
+  logInfo(`status: phase=${state.phase} mode=${state.mode} engine=${state.engine ?? 'n/a'}`);
 }
 
 function stateFrom(ctx: PipelineContext, phase: string) {

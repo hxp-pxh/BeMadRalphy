@@ -9,6 +9,7 @@ Current scaffolding covers:
 - Steering file generation (AGENTS.md, CLAUDE.md, Cursor/Windsurf/Cline/Kiro rules)
 - `tasks.md` generation and `.beads/issues.jsonl` placeholders
 - State and cost persistence in `.bemadralphy/`
+- Execution can use `bd ready` when Beads and engine CLIs are available
 
 ## Overview
 
@@ -19,7 +20,7 @@ BeMadRalphy is a CLI orchestrator that coordinates four underlying systems:
 3. **Ralphy-style execution** — Multi-engine autonomous coding loop (logic ported, not a runtime dependency)
 4. **OpenSpec** — Living specifications and delta-based change tracking
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         BeMadRalphy CLI                              │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -42,7 +43,7 @@ BeMadRalphy is a CLI orchestrator that coordinates four underlying systems:
 
 ## Directory Structure
 
-```
+```text
 src/
 ├── cli.ts                  # CLI entry point (commander/yargs)
 ├── index.ts                # Programmatic API entry
@@ -119,7 +120,7 @@ src/
 
 ### Phase 0: Explore (Optional)
 
-```
+```text
 User query → AI analysis → Exploration report
                 ↓
          User refines idea.md
@@ -127,7 +128,7 @@ User query → AI analysis → Exploration report
 
 ### Phase 1: Idea Intake
 
-```
+```text
 idea.md → Detect mode → Classify type → Extract decisions → Q&A → intake.yaml
               ↓
     Greenfield or Brownfield?
@@ -137,7 +138,7 @@ idea.md → Detect mode → Classify type → Extract decisions → Q&A → inta
 
 **Greenfield:**
 
-```
+```text
 intake.yaml → BMAD Analyst → Product Brief
                    ↓
             BMAD PM → PRD
@@ -149,13 +150,13 @@ intake.yaml → BMAD Analyst → Product Brief
 
 **Brownfield:**
 
-```
+```text
 intake.yaml → Codebase analysis → Proposal → Spec deltas → Design → Tasks
 ```
 
 ### Phase 3-8: Build & Deploy
 
-```
+```text
 Stories/Tasks → Steering files → Scaffold → Beads sync → Execute → Verify → Post
                                                 ↓
                                     Native swarm or process parallel
@@ -253,7 +254,7 @@ This allows BeMadRalphy to work headlessly without an IDE.
 
 For engines with native swarm (Claude, Kimi, Codex):
 
-```
+```text
 bd ready (all unblocked) → Group by epic → Feed batch to swarm → Monitor → Update Beads → Next batch
 ```
 
@@ -261,7 +262,7 @@ bd ready (all unblocked) → Group by epic → Feed batch to swarm → Monitor �
 
 For single-agent engines:
 
-```
+```text
 bd ready → Spawn N processes in git worktrees → Each pulls tasks → Auto-merge on completion
 ```
 

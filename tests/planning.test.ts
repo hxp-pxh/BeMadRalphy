@@ -1,9 +1,9 @@
-import { describe, expect, it } from 'vitest';
 import { mkdtemp, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { runPlanning } from '../src/planning/index.js';
+import { describe, expect, it } from 'vitest';
 import type { PipelineContext } from '../src/phases/types.js';
+import { runPlanning } from '../src/planning/index.js';
 
 describe('runPlanning', () => {
   it('creates placeholder BMAD outputs', async () => {

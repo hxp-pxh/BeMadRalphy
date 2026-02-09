@@ -1,8 +1,7 @@
-import { describe, expect, it } from 'vitest';
-import { mkdtemp } from 'node:fs/promises';
+import { access, mkdtemp } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { access } from 'node:fs/promises';
+import { describe, it } from 'vitest';
 import { steeringPhase } from '../src/phases/steering.js';
 import type { PipelineContext } from '../src/phases/types.js';
 

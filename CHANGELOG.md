@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Steering file generation and placeholder Beads sync
 - State and cost persistence stubs
 - `init` scaffolding with Beads/BMAD detection and `status` output
+- Execution uses `bd ready` when Beads and engine CLIs are available
 
 ### Changed
 

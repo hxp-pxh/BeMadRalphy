@@ -17,6 +17,7 @@ Current scaffolding includes:
 - Steering file generation (AGENTS.md, CLAUDE.md, Cursor/Windsurf/Cline/Kiro rules)
 - `tasks.md` generation and `.beads/issues.jsonl` placeholders
 - Per-phase state persistence in `.bemadralphy/state.yaml`
+- Execution phase can run `bd ready` when Beads + engine CLIs are available
 
 ---
 

@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { PipelineContext } from '../phases/types.js';
-import { logInfo } from '../utils/logging.js';
 import { commandExists } from '../utils/exec.js';
+import { logInfo } from '../utils/logging.js';
 import { validateBmadOutputs } from './validate.js';
 
 export async function runPlanning(ctx: PipelineContext): Promise<void> {
