@@ -2,6 +2,14 @@
 
 This document describes the **target** architecture of BeMadRalphy, including its internal module structure, data flow, and key design decisions. An initial scaffolding exists, but most modules are still stubs.
 
+Current scaffolding covers:
+
+- Intake parsing (`idea.md`/`plan.md`) and `.bemadralphy/intake.yaml`
+- Placeholder BMAD outputs under `_bmad-output/`
+- Steering file generation (AGENTS.md, CLAUDE.md, Cursor/Windsurf/Cline/Kiro rules)
+- `tasks.md` generation and `.beads/issues.jsonl` placeholders
+- State and cost persistence in `.bemadralphy/`
+
 ## Overview
 
 BeMadRalphy is a CLI orchestrator that coordinates four underlying systems:

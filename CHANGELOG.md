@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial TypeScript scaffolding and CLI placeholders
 - Core module stubs (phases, engines, swarm, Beads, specs)
+- Intake parsing with `.bemadralphy/intake.yaml`
+- Placeholder BMAD outputs under `_bmad-output/`
+- Steering file generation and placeholder Beads sync
+- State and cost persistence stubs
 
 ### Changed
 

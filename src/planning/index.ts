@@ -21,79 +21,43 @@ export async function runPlanning(ctx: PipelineContext): Promise<void> {
     return;
   }
 
-  logInfo(
-    `planning: using placeholder BMAD output (planningEngine=${ctx.planningEngine ?? 'default'})`,
-  );
-
-  const maxRetries = 2;
-  for (let attempt = 1; attempt <= maxRetries + 1; attempt += 1) {
-    await writeOutputs(outputs, attempt);
-    try {
-      await validateBmadOutputs(outputs);
-      logInfo('planning: placeholder BMAD outputs created');
-      return;
-    } catch (error) {
-      logInfo(`planning: validation failed (attempt ${attempt})`);
-      if (attempt > maxRetries) {
-        throw error;
-      }
-    }
-  }
-}
-
-async function writeOutputs(
-  outputs: {
-    productBriefPath: string;
-    prdPath: string;
-    architecturePath: string;
-    storiesPath: string;
-  },
-  attempt: number,
-): Promise<void> {
-  await writeFile(
+  await writeIfMissing(
     outputs.productBriefPath,
-    placeholderDoc('Product Brief', [
-      'Problem',
-      'Goals',
-      'Non-Goals',
-      'Users',
-      'Success Metrics',
-      `Retry Attempt: ${attempt}`,
-    ]),
-    'utf-8',
+    placeholderDoc('Product Brief', ['Problem', 'Goals', 'Non-Goals', 'Users', 'Success Metrics']),
   );
-  await writeFile(
+  await writeIfMissing(
     outputs.prdPath,
     placeholderDoc('PRD', [
       'Overview',
       'User Stories',
       'Functional Requirements',
       'Non-Functional Requirements',
-      `Retry Attempt: ${attempt}`,
     ]),
-    'utf-8',
   );
-  await writeFile(
+  await writeIfMissing(
     outputs.architecturePath,
     placeholderDoc('Architecture', [
       'System Overview',
       'Key Components',
       'Data Flows',
       'Decisions',
-      `Retry Attempt: ${attempt}`,
     ]),
-    'utf-8',
   );
-  await writeFile(
+  await writeIfMissing(
     outputs.storiesPath,
-    placeholderDoc('Epics and Stories', [
-      'Epic 1',
-      'Epic 2',
-      'Epic 3',
-      `Retry Attempt: ${attempt}`,
-    ]),
-    'utf-8',
+    placeholderDoc('Epics and Stories', ['Epic 1', 'Epic 2', 'Epic 3']),
   );
+
+  await validateBmadOutputs(outputs);
+  logInfo('planning: placeholder BMAD outputs created');
+}
+
+async function writeIfMissing(pathname: string, contents: string): Promise<void> {
+  try {
+    await writeFile(pathname, contents, { flag: 'wx' });
+  } catch {
+    // File exists; do nothing.
+  }
 }
 
 function placeholderDoc(title: string, sections: string[]): string {

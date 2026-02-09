@@ -1,3 +1,3 @@
 import { createStubAdapter } from './stub.js';
 
-export const codexAdapter = createStubAdapter('codex', true, [], 'codex');
+export const codexAdapter = createStubAdapter('codex', true);

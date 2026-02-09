@@ -99,7 +99,7 @@ node dist/cli.js --help
 # Create a test directory
 mkdir ~/test-project && cd ~/test-project
 
-# Initialize BeMadRalphy (creates .bemadralphy/ and openspec/)
+# Initialize BeMadRalphy
 bemadralphy init
 
 # Create an idea file

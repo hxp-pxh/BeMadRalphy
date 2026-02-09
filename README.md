@@ -10,6 +10,14 @@
 
 BeMadRalphy has an initial TypeScript scaffolding in this repo. The CLI commands are stubbed and not yet functional, and the npm package is not released. The sections below describe the **planned** interface and architecture, with the current scaffolding focused on file generation and placeholders.
 
+Current scaffolding includes:
+
+- `idea.md`/`plan.md` intake with `.bemadralphy/intake.yaml` output
+- Placeholder BMAD outputs under `_bmad-output/`
+- Steering file generation (AGENTS.md, CLAUDE.md, Cursor/Windsurf/Cline/Kiro rules)
+- `tasks.md` generation and `.beads/issues.jsonl` placeholders
+- Per-phase state persistence in `.bemadralphy/state.yaml`
+
 ---
 
 ## What is BeMadRalphy?
@@ -129,7 +137,7 @@ flowchart TD
 The following commands represent the intended CLI interface. Current implementations are placeholders and may only create placeholder outputs.
 
 ```bash
-# Initialize a new project (creates .bemadralphy/ and openspec/)
+# Initialize a new project
 npx bemadralphy init
 
 # Run the full pipeline
@@ -259,17 +267,6 @@ your-project/
 ---
 
 ## Configuration (planned)
-
-### `.bemadralphy/config.yaml`
-
-Created by `bemadralphy init`:
-
-```yaml
-version: 0.1.0
-created_at: 2026-02-09T00:00:00Z
-project_root: /path/to/project
-notes: "initial config scaffold"
-```
 
 ### `.bemadralphy/state.yaml`
 

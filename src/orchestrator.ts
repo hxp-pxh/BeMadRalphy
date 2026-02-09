@@ -1,5 +1,3 @@
-import path from 'node:path';
-import { mkdir, writeFile } from 'node:fs/promises';
 import { CostTracker } from './cost.js';
 import {
     executePhase,
@@ -14,9 +12,8 @@ import {
     type PipelineContext,
     type PipelineMode,
 } from './phases/index.js';
-import { loadState, saveState } from './state.js';
+import { saveState } from './state.js';
 import { logInfo } from './utils/logging.js';
-import { commandExists, runCommand } from './utils/exec.js';
 
 export type RunOptions = {
   mode: PipelineMode;
@@ -31,40 +28,7 @@ export type RunOptions = {
 };
 
 export async function runInit(): Promise<void> {
-  const projectRoot = process.cwd();
-  const bemadDir = path.join(projectRoot, '.bemadralphy');
-  const openspecDir = path.join(projectRoot, 'openspec');
-  await mkdir(path.join(openspecDir, 'specs'), { recursive: true });
-  await mkdir(path.join(openspecDir, 'changes', 'archive'), { recursive: true });
-  await mkdir(bemadDir, { recursive: true });
-
-  const configPath = path.join(bemadDir, 'config.yaml');
-  await writeFile(
-    configPath,
-    [
-      'version: 0.1.0',
-      `created_at: ${new Date().toISOString()}`,
-      `project_root: ${projectRoot}`,
-      'notes: "initial config scaffold"',
-      '',
-    ].join('\n'),
-    'utf-8',
-  );
-
-  const hasBeads = await commandExists('bd');
-  if (hasBeads) {
-    await runCommand('bd', ['init'], projectRoot);
-    logInfo('init: Beads initialized');
-  } else {
-    logInfo('init: Beads CLI (bd) not found. Install from https://github.com/beads-ai/beads');
-  }
-
-  const hasBmad = await commandExists('bmad');
-  if (!hasBmad) {
-    logInfo('init: BMAD CLI not found. Install BMAD-METHOD before planning.');
-  }
-
-  logInfo('init: completed scaffold of .bemadralphy and openspec/');
+  logInfo('init: not implemented yet');
 }
 
 export async function runPipeline(options: RunOptions): Promise<void> {
@@ -119,16 +83,7 @@ export async function runExplore(query: string): Promise<void> {
 }
 
 export async function runStatus(): Promise<void> {
-  const projectRoot = process.cwd();
-  const state = await loadState(projectRoot);
-  if (!state) {
-    logInfo('status: no state found (.bemadralphy/state.yaml missing)');
-    return;
-  }
-
-  logInfo(
-    `status: phase=${state.phase} mode=${state.mode} engine=${state.engine ?? 'n/a'}`,
-  );
+  logInfo('status: not implemented yet');
 }
 
 function stateFrom(ctx: PipelineContext, phase: string) {

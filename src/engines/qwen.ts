@@ -1,3 +1,3 @@
 import { createStubAdapter } from './stub.js';
 
-export const qwenAdapter = createStubAdapter('qwen', false, [], 'qwen');
+export const qwenAdapter = createStubAdapter('qwen', false);

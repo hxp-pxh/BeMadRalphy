@@ -1,3 +1,3 @@
 import { createStubAdapter } from './stub.js';
 
-export const cursorAdapter = createStubAdapter('cursor', false, [], 'cursor');
+export const cursorAdapter = createStubAdapter('cursor', false);

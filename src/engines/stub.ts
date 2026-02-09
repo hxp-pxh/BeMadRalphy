@@ -1,4 +1,3 @@
-import { commandExists } from '../utils/exec.js';
 import { logInfo } from '../utils/logging.js';
 import type { EngineAdapter, EngineTask, ExecuteOptions, TaskResult } from './types.js';
 
@@ -6,17 +5,13 @@ export function createStubAdapter(
   name: string,
   hasNativeSwarm: boolean,
   permissionFlags: string[] = [],
-  commandName?: string,
 ): EngineAdapter {
   return {
     name,
     hasNativeSwarm,
     permissionFlags,
     async checkAvailable(): Promise<boolean> {
-      if (!commandName) {
-        return false;
-      }
-      return commandExists(commandName);
+      return false;
     },
     async execute(task: EngineTask, options: ExecuteOptions): Promise<TaskResult> {
       logInfo(
