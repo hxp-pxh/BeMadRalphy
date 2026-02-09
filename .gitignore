@@ -1,0 +1,81 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+
+# Lockfiles (generated, not edited)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+bun.lockb
+deno.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# BeMadRalphy internal state
+.bemadralphy/
+
+# IDE and editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache
+.npm/
+
+# Optional eslint cache
+.eslintcache
+
+# Deno
+.deno/
+
+# Bun
+.bun/
+
+# Turbo
+.turbo/
+
+# Vercel
+.vercel/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
