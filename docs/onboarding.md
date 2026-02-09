@@ -2,7 +2,7 @@
 
 Welcome to BeMadRalphy! This guide will help you get set up for local development.
 
-> **Note:** The repository is currently documentation-first. There is no code scaffolding yet, so the commands below are **planned** for when implementation begins.
+> **Note:** The repository contains initial scaffolding, but many commands are still placeholders. The commands below are **planned** for when implementation matures.
 
 ## Table of Contents
 

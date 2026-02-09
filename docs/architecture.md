@@ -1,6 +1,6 @@
 # BeMadRalphy Architecture
 
-This document describes the **target** architecture of BeMadRalphy, including its internal module structure, data flow, and key design decisions. The codebase has not been implemented yet.
+This document describes the **target** architecture of BeMadRalphy, including its internal module structure, data flow, and key design decisions. An initial scaffolding exists, but most modules are still stubs.
 
 ## Overview
 

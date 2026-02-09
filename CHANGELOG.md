@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Nothing yet
+- Initial TypeScript scaffolding and CLI placeholders
+- Core module stubs (phases, engines, swarm, Beads, specs)
 
 ### Changed
 
@@ -19,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet
 
-## [0.1.0] - 2026-02-09 (docs-only, not released)
+## [0.1.0] - 2026-02-09
 
 ### Added
 

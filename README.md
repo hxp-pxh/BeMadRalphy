@@ -8,7 +8,7 @@
 
 ## Status
 
-BeMadRalphy is currently in the design/documentation stage. The CLI and npm package are not released yet. The sections below describe the **planned** interface and architecture.
+BeMadRalphy has an initial TypeScript scaffolding in this repo. The CLI commands are stubbed and not yet functional, and the npm package is not released. The sections below describe the **planned** interface and architecture.
 
 ---
 
@@ -126,7 +126,7 @@ flowchart TD
 
 ## CLI Commands (planned)
 
-The following commands are the intended CLI interface and are not available yet.
+The following commands represent the intended CLI interface. Current implementations are placeholders.
 
 ```bash
 # Initialize a new project

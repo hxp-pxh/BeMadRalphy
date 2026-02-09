@@ -2,7 +2,7 @@
 
 Thank you for your interest in contributing to BeMadRalphy! This document provides guidelines and instructions for contributing.
 
-> **Note:** The repository is currently documentation-first. There is no code scaffolding yet, so build/test scripts are not available. The workflow below describes the **intended** contribution process once the implementation begins.
+> **Note:** The repository contains initial scaffolding, but many commands are still placeholders. The workflow below describes the intended contribution process as implementation progresses.
 
 ## Table of Contents
 
@@ -32,7 +32,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDU
 - Git
 - pnpm (recommended) or npm
 
-### Setup (when code scaffolding exists)
+### Setup (scaffolding stage)
 
 ```bash
 # Fork the repository on GitHub, then clone your fork
