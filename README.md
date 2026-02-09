@@ -129,7 +129,7 @@ flowchart TD
 The following commands represent the intended CLI interface. Current implementations are placeholders and may only create placeholder outputs.
 
 ```bash
-# Initialize a new project
+# Initialize a new project (creates .bemadralphy/ and openspec/)
 npx bemadralphy init
 
 # Run the full pipeline
@@ -259,6 +259,17 @@ your-project/
 ---
 
 ## Configuration (planned)
+
+### `.bemadralphy/config.yaml`
+
+Created by `bemadralphy init`:
+
+```yaml
+version: 0.1.0
+created_at: 2026-02-09T00:00:00Z
+project_root: /path/to/project
+notes: "initial config scaffold"
+```
 
 ### `.bemadralphy/state.yaml`
 

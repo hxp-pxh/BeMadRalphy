@@ -1,3 +1,3 @@
 import { createStubAdapter } from './stub.js';
 
-export const copilotAdapter = createStubAdapter('copilot', false);
+export const copilotAdapter = createStubAdapter('copilot', false, [], 'copilot');
