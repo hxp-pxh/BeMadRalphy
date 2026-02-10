@@ -10,12 +10,12 @@ Accepted
 
 ## Context
 
-BeMadRalphy is an orchestrator that coordinates multiple AI-powered development tools (BMAD, Beads, Ralphy-style execution, OpenSpec). We needed to decide on the user interface approach:
+BeMadRalphy is an orchestrator that coordinates AI-powered planning, task management, execution, and specification lifecycle into a single tool. We needed to decide on the user interface approach:
 
-1. **CLI-only** — Command-line interface with interactive prompts
-2. **Web dashboard** — Browser-based UI for monitoring and control
-3. **Desktop app** — Electron or similar native application
-4. **Hybrid** — CLI for execution, web UI for monitoring
+1. **CLI-only** -- Command-line interface with interactive prompts
+2. **Web dashboard** -- Browser-based UI for monitoring and control
+3. **Desktop app** -- Electron or similar native application
+4. **Hybrid** -- CLI for execution, web UI for monitoring
 
 Considerations:
 
@@ -30,10 +30,12 @@ Considerations:
 BeMadRalphy will be **CLI-only** with no graphical user interface.
 
 All interaction happens through:
-- Command-line commands (`bemadralphy init`, `run`, `status`, `explore`)
-- Interactive terminal prompts (for Q&A and approval gates)
-- File-based configuration (`idea.md`, `intake.yaml`, `.bemadralphy/state.yaml`)
-- Standard output for progress and results
+
+- Command-line commands (`bemadralphy init`, `run`, `plan`, `execute`, `resume`, `status`, `tasks`, `doctor`)
+- Interactive terminal prompts (for Q&A and approval gates in hybrid/supervised modes)
+- File-based configuration (`idea.md`, `.bemadralphyrc`, `bemad.config.js`)
+- File-based state (`.bemadralphy/state.yaml`, `.bemadralphy/tasks.db`)
+- Standard output for progress and results (`--output text|json`)
 
 ## Consequences
 
@@ -44,7 +46,7 @@ All interaction happens through:
 - **Headless operation**: Works on servers, containers, and remote machines
 - **AI-friendly**: AI agents can invoke BeMadRalphy directly
 - **Fast iteration**: No frontend framework, build tooling, or deployment complexity
-- **Universal**: Works on any OS with Node.js/Bun
+- **Universal**: Works on any OS with Node.js
 
 ### Negative
 
@@ -55,34 +57,15 @@ All interaction happens through:
 
 ### Mitigations
 
-- **Rich terminal output**: Use colors, spinners, and progress bars
-- **`tasks.md`**: Human-readable task list as a "view" into Beads
+- **Rich terminal output**: Colors, progress indicators, and structured JSON output
+- **`tasks.md`**: Human-readable task list as a view into the task database
 - **`bemadralphy status`**: Quick overview of pipeline state
-- **Comprehensive docs**: README, onboarding guide, `--help` for all commands
-- **Future option**: A web dashboard could be added as an optional companion tool later, but the CLI remains the primary interface
-
-## Alternatives Considered
-
-### Web Dashboard
-
-Rejected because:
-- Adds significant development and maintenance burden
-- Requires hosting/deployment decisions
-- Not usable in headless environments
-- Overkill for the primary use case (developer running locally)
-
-### Desktop App
-
-Rejected because:
-- Even higher development cost (Electron, Tauri, etc.)
-- Platform-specific concerns
-- Not usable in CI/CD or by AI agents
-
-### Hybrid (CLI + Web)
-
-Deferred. Could be added later as an optional monitoring layer, but the CLI must be fully functional standalone.
+- **`bemadralphy doctor`**: Environment readiness check
+- **Comprehensive docs**: README, getting-started guide, onboarding guide, `--help` for all commands
+- **Future option**: A web dashboard could be added as an optional companion tool later
 
 ## Related
 
-- [README.md](../../README.md) — CLI commands documentation
-- [docs/onboarding.md](../onboarding.md) — How to use the CLI
+- [README.md](../../README.md) -- CLI commands documentation
+- [docs/getting-started.md](../getting-started.md) -- First local run
+- [docs/onboarding.md](../onboarding.md) -- Developer setup

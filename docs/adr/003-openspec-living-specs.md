@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+**Superseded** by [ADR-006](006-internal-spec-engine-replacing-openspec.md)
 
 ## Date
 
@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-After BeMadRalphy builds a project, there's a gap: the PRD and architecture are snapshots from planning time, but they don't evolve with the codebase. When making future changes (brownfield mode), there's no "source of truth" to express changes against.
+After BeMadRalphy builds a project, there is a gap: the PRD and architecture are snapshots from planning time, but they do not evolve with the codebase. When making future changes (brownfield mode), there is no source of truth to express changes against.
 
 We needed a specification model that:
 
@@ -20,66 +20,45 @@ We needed a specification model that:
 4. Is human-readable and AI-parseable
 5. Provides an audit trail of changes
 
-Options considered:
+## Decision (v1)
 
-1. **OpenSpec model** — Living specs with delta-based changes
-2. **Keep PRD updated** — Manually update PRD after each change
-3. **Code as spec** — Tests and types are the specification
-4. **No formal spec** — Just documentation and comments
-5. **Custom spec format** — Build our own specification system
-
-## Decision
-
-Adopt the **OpenSpec-compatible living specification model**.
+Adopt the **OpenSpec-compatible living specification model** using the external OpenSpec CLI.
 
 After initial build, BeMadRalphy generates specifications in `openspec/specs/`:
 
-```
+```text
 openspec/
-├── specs/
-│   ├── auth/spec.md
-│   ├── workouts/spec.md
-│   └── goals/spec.md
-├── changes/
-│   └── archive/
+  specs/
+    auth/spec.md
+    workouts/spec.md
+    goals/spec.md
+  changes/
+    archive/
 ```
 
 For brownfield changes, new requirements are expressed as **delta specs** (ADDED/MODIFIED/REMOVED) against current specs. On completion, deltas merge into main specs.
 
-## Consequences
+## Superseded (v2)
 
-### Positive
+In v2, this decision was superseded by [ADR-006](006-internal-spec-engine-replacing-openspec.md). The external OpenSpec CLI dependency was replaced by an internal spec engine (`src/specs/`) that implements:
 
-- **Living documentation**: Specs evolve with code, never stale
-- **Delta-based changes**: Express what's changing, not rewrite everything
-- **Audit trail**: Completed changes archived with full context
-- **Brownfield support**: Clear model for incremental changes
-- **Semantic verification**: Can verify implementation against specs
-- **OpenSpec compatibility**: Users can use OpenSpec tools if desired
-- **Structured format**: GIVEN/WHEN/THEN scenarios are testable
+- **Scaffold**: Create `openspec/` directories and initial config
+- **Validate**: Check spec markdown for required headers (`## Purpose`, `## Requirements`), SHALL/MUST keywords, and GIVEN/WHEN/THEN scenarios
+- **Archive**: Validate specs, merge delta changes, and move completed changes to `openspec/changes/archive/`
+- **Delta merge**: Process ADDED/MODIFIED/REMOVED sections
 
-### Negative
-
-- **Additional artifacts**: More files to maintain
-- **Generation complexity**: Must generate specs from PRD + code
-- **Merge complexity**: Delta merging requires careful implementation
-- **Learning curve**: Users must understand the spec format
-
-### Mitigations
-
-- **Auto-generation**: Specs generated automatically in Phase 8
-- **Delta automation**: BeMadRalphy handles delta creation and merging
-- **Clear format**: Markdown with structured sections is readable
-- **Optional**: Users can ignore specs if they prefer PRD-only
+The spec format, directory structure, and delta model remain OpenSpec-compatible. Only the tooling execution moved from external CLI calls to in-process operations.
 
 ## Specification Format
+
+The spec format remains unchanged from v1:
 
 ### Domain Spec (`openspec/specs/auth/spec.md`)
 
 ```markdown
 # Authentication
 
-## Overview
+## Purpose
 
 User authentication via email/password and OAuth providers.
 
@@ -95,12 +74,6 @@ Users can create an account with email and password.
 - WHEN the user submits the registration form
 - THEN a new account is created
 - AND a verification email is sent
-
-### REQ-AUTH-002: OAuth Login
-
-Users can sign in with Google or GitHub.
-
-...
 ```
 
 ### Delta Spec (for brownfield changes)
@@ -125,65 +98,8 @@ Users can enable 2FA via authenticator app.
 None
 ```
 
-## Implementation
-
-### Phase 8: Generate Initial Specs
-
-After greenfield build:
-1. Parse PRD for requirements
-2. Parse architecture for domain boundaries
-3. Analyze implemented code for actual behavior
-4. Generate `openspec/specs/<domain>/spec.md` for each domain
-
-### Brownfield: Delta Flow
-
-1. User describes change in `idea.md`
-2. BeMadRalphy generates proposal + delta spec
-3. Delta spec shows ADDED/MODIFIED/REMOVED against current specs
-4. After execution, deltas merge into main specs
-5. Original change archived to `openspec/changes/archive/`
-
-### Semantic Verification (Phase 7)
-
-Verify implementation against specs:
-- **Completeness**: All requirements have corresponding code
-- **Correctness**: Implementation matches spec intent
-- **Coherence**: Design decisions reflected in code
-
-## Alternatives Considered
-
-### Keep PRD Updated
-
-Rejected because:
-- PRD is a planning document, not a living spec
-- No structured format for requirements
-- No delta model for changes
-- Becomes stale quickly
-
-### Code as Spec
-
-Rejected because:
-- Tests verify behavior, not intent
-- Types don't capture business requirements
-- No human-readable requirements document
-- Hard to understand "what should this do?"
-
-### No Formal Spec
-
-Rejected because:
-- No source of truth for brownfield changes
-- Can't verify implementation against intent
-- Documentation drifts from reality
-
-### Custom Spec Format
-
-Rejected because:
-- OpenSpec already exists and is well-designed
-- Compatibility with OpenSpec tools is valuable
-- No need to reinvent
-
 ## Related
 
-- [OpenSpec documentation](https://github.com/Fission-AI/OpenSpec)
-- [docs/architecture.md](../architecture.md) — Spec management module
-- [ADR-002](002-beads-as-task-source.md) — Task management (separate from specs)
+- [ADR-006](006-internal-spec-engine-replacing-openspec.md) -- Internal spec engine replaces OpenSpec CLI
+- [OpenSpec documentation](https://github.com/Fission-AI/OpenSpec) -- Original inspiration
+- [docs/architecture.md](../architecture.md) -- Spec Engine details

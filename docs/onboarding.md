@@ -1,46 +1,52 @@
 # Developer Onboarding Guide
 
-Welcome to BeMadRalphy! This guide will help you get set up for local development.
+Welcome to BeMadRalphy! This guide covers everything you need to develop, test, and contribute to the BeMadRalphy repository.
 
-> The repository now runs with internal planning/task/spec engines. Parent CLIs are no longer required.
->
-> If you want to run BeMadRalphy as a local user/operator, start with `docs/getting-started.md`.
+> If you want to use BeMadRalphy to run a pipeline in your own project, start with [docs/getting-started.md](getting-started.md) instead.
+
+---
 
 ## Table of Contents
 
-- [Who this guide is for](#who-this-guide-is-for)
 - [Prerequisites](#prerequisites)
 - [Setup](#setup)
 - [Running Locally](#running-locally)
 - [Running Tests](#running-tests)
-- [Directory Walkthrough](#directory-walkthrough)
-- [Key Conventions](#key-conventions)
+- [Project Structure](#project-structure)
+- [Key Modules](#key-modules)
+- [Code Conventions](#code-conventions)
 - [Common Tasks](#common-tasks)
 - [Troubleshooting](#troubleshooting)
-
----
-
-## Who This Guide Is For
-
-Use this document if you are developing inside the BeMadRalphy repository (tests, code changes, docs updates).
-
-If you are running your first local product pipeline in a target project, use `docs/getting-started.md` first.
+- [Getting Help](#getting-help)
 
 ---
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed:
+| Tool | Version | Check command |
+| --- | --- | --- |
+| Node.js | 18+ | `node --version` |
+| npm | 9+ | `npm --version` |
+| Git | 2.30+ | `git --version` |
 
-| Tool    | Version | Check command    |
-| ------- | ------- | ---------------- |
-| Node.js | 18+     | `node --version` |
-| npm     | 9+      | `npm --version`  |
-| Git     | 2.30+   | `git --version`  |
+### Native module compilation
 
-If developing task manager changes, ensure your machine can build native modules for `better-sqlite3` (C/C++ toolchain).
+The task manager uses `better-sqlite3`, which requires a C/C++ toolchain to build native bindings:
 
-Planning integration requires `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` for real runs (tests use fallback behavior).
+- **macOS**: `xcode-select --install`
+- **Ubuntu/Debian**: `sudo apt install build-essential python3`
+- **Fedora/RHEL**: `sudo dnf groupinstall "Development Tools"`
+- **Windows**: Install [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+
+### Optional for real AI calls
+
+Tests use fallback behavior and do not require API keys. For real planning runs during development:
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...
+# or
+export OPENAI_API_KEY=sk-...
+```
 
 ---
 
@@ -59,7 +65,7 @@ cd BeMadRalphy
 npm install
 ```
 
-### 3. Build the project
+### 3. Build
 
 ```bash
 npm run build
@@ -71,12 +77,12 @@ npm run build
 npm link
 ```
 
-Now you can run `bemadralphy` from anywhere.
+Now `bemadralphy` is available globally from your terminal.
 
-### 5. Verify setup
+### 5. Verify
 
 ```bash
-npm test
+npm run verify    # typecheck + lint + test
 bemadralphy --version
 ```
 
@@ -84,169 +90,209 @@ bemadralphy --version
 
 ## Running Locally
 
-### Development mode (with watch)
+### Development mode (watch)
 
 ```bash
 npm run dev
 ```
 
-This runs the TypeScript compiler in watch mode. Changes to `src/` are automatically recompiled.
+Runs the TypeScript compiler in watch mode. Changes to `src/` are automatically recompiled.
 
 ### Run the CLI directly
 
 ```bash
-# Using tsx
-npm run dev -- --help
+# Via tsx (no build needed)
+npx tsx src/cli.ts --help
 
-# Or after building
+# Via compiled output
 node dist/cli.js --help
 ```
 
 ### Test against a sample project
 
 ```bash
-# Create a test directory
 mkdir ~/test-project && cd ~/test-project
-
-# Initialize BeMadRalphy
 bemadralphy init
-
-# This creates .bemadralphy/, openspec/, and _bmad-output/, and fails fast if
-# required CLIs (bd, bmad, openspec) are missing.
-
-# Create an idea file
 echo "A simple todo app with local storage" > idea.md
 
-# Run full pipeline (default engine uses Ralphy adapter)
-bemadralphy run --mode auto --engine ralphy
+# Run planning only (no engine needed)
+bemadralphy plan
 
-# Preflight only (no execution spend)
+# Full pipeline with an engine
+bemadralphy run --engine claude --execution-profile safe
+
+# Dry run (no tokens spent)
 bemadralphy run --dry-run --output json
 
 # Resume from checkpoint
-bemadralphy run --resume
+bemadralphy resume
 ```
-
-### Fail-fast guarantees
-
-- `run` fails if BMAD cannot produce valid planning artifacts.
-- `run` fails if `bd` is unavailable during task sync/execution.
-- `run` fails if selected engine contract is unavailable or misconfigured.
-- `run` fails if OpenSpec validate/archive commands fail.
 
 ---
 
 ## Running Tests
 
-### Run all tests
+### All tests
 
 ```bash
 npm test
 ```
 
-Tests live in the `tests/` directory (e.g., `tests/intake.test.ts`).
+Tests live in the `tests/` directory.
 
-### Run tests in watch mode
+### Watch mode
 
 ```bash
 npm run test:watch
 ```
 
-### Run tests with coverage
+### Coverage
 
 ```bash
 npm run test:coverage
 ```
 
-### Run a specific test file
+### Specific file
 
 ```bash
-npm test -- src/phases/intake.test.ts
+npx vitest run tests/phases/execute.test.ts
 ```
 
-### Run tests matching a pattern
+### Pattern match
 
 ```bash
-npm test -- -t "should extract stack decisions"
+npx vitest run -t "should extract stack decisions"
 ```
+
+### Full verification (what CI runs)
+
+```bash
+npm run verify
+```
+
+This runs `typecheck` + `lint` + `test` in sequence.
 
 ---
 
-## Directory Walkthrough
+## Project Structure
 
 ```text
 BeMadRalphy/
-├── src/                    # Source code
-│   ├── cli.ts              # CLI entry point
-│   ├── phases/             # Pipeline phases (the core logic)
-│   ├── engines/            # AI engine adapters
-│   ├── swarm/              # Native swarm integrations
-│   ├── beads/              # Beads integration
-│   ├── specs/              # Living spec management
-│   ├── docs/               # Documentation generators
-│   └── scaffold/           # Config generators
-│
-├── tests/                  # Test utilities and fixtures
-│   ├── fixtures/           # Sample files for testing
-│   └── helpers/            # Test helper functions
-│
-├── docs/                   # Project documentation
-│   ├── architecture.md     # This architecture doc
-│   ├── onboarding.md       # You are here
-│   └── adr/                # Architecture Decision Records
-│
-├── .github/                # GitHub templates and workflows
-│   ├── workflows/          # CI/CD pipelines
-│   └── ISSUE_TEMPLATE/     # Issue templates
-│
-├── package.json            # Project manifest
-├── tsconfig.json           # TypeScript configuration
-├── vitest.config.ts        # Test configuration
-├── eslint.config.mjs       # Linting rules
-└── prettier.config.mjs     # Formatting rules
+  src/
+    cli.ts                # CLI entry point (commander.js)
+    orchestrator.ts       # Pipeline orchestration, init, doctor
+    ai/                   # AI provider layer (Anthropic, OpenAI, Ollama)
+    templates/            # Embedded prompt templates for planning + execution
+    tasks/                # SQLite task manager (replaces Beads CLI)
+    specs/                # Internal spec engine (replaces OpenSpec CLI)
+    execution/            # Retry logic with backoff and error classification
+    phases/               # Pipeline phases (explore through post)
+    planning/             # Planning pipeline and validation
+    engines/              # AI engine adapters (claude, cursor, codex, etc.)
+    swarm/                # Native swarm integrations
+    steering/             # Steering file generation
+    beads/                # Story-to-task adapter and tasks.md generation
+    plugins/              # Plugin system
+    state.ts              # Pipeline state persistence
+    history.ts            # Run history
+    config.ts             # Config file loading
+    cost.ts               # Cost tracking
+
+  tests/
+    phases/               # Phase-level tests
+    engines/              # Engine adapter tests
+    e2e/                  # End-to-end pipeline tests
+    planning/             # Planning validation tests
+    helpers/              # Test utilities
+
+  docs/
+    architecture.md       # System architecture
+    getting-started.md    # First-run guide
+    onboarding.md         # This file
+    positioning.md        # Market positioning
+    adr/                  # Architecture Decision Records
+    testing/              # Smoke test procedures
 ```
 
 ### Key files to know
 
-| File                   | Purpose                                     |
-| ---------------------- | ------------------------------------------- |
-| `src/cli.ts`           | CLI entry point; defines commands and flags |
-| `src/phases/*.ts`      | Each phase of the pipeline                  |
-| `src/engines/types.ts` | Common interface for engine adapters        |
-| `src/state.ts`         | Pipeline state management                   |
+| File | Purpose |
+| --- | --- |
+| `src/cli.ts` | CLI commands and flag definitions |
+| `src/orchestrator.ts` | Pipeline orchestration, `runInit`, `runDoctor`, `runPipeline` |
+| `src/ai/provider.ts` | `AIProvider` interface for planning calls |
+| `src/tasks/manager.ts` | `TaskManager` with SQLite CRUD and ready queue |
+| `src/engines/types.ts` | `EngineAdapter` interface for execution |
+| `src/engines/cli-adapter.ts` | Generic CLI adapter factory with rich prompt construction |
+| `src/execution/retry.ts` | `withRetry` utility with exponential backoff |
+| `src/specs/validate.ts` | Internal spec validation rules |
+| `src/templates/index.ts` | Template loading and rendering |
+| `src/phases/execute.ts` | Execution loop with retry and two-stage review |
 
 ---
 
-## Key Conventions
+## Key Modules
 
-### Code style
+### AI Provider (`src/ai/`)
 
-- **TypeScript strict mode** — No implicit any, strict null checks
-- **TSDoc comments** — All exported functions must have TSDoc
-- **2 spaces** — For indentation
-- **Single quotes** — For strings
-- **Trailing commas** — In multiline structures
+Direct API integration for planning. Supports Anthropic, OpenAI, and Ollama with automatic fallback. Used by the planning phase to generate product briefs, PRDs, architecture, and stories.
 
-### File naming
+### Task Manager (`src/tasks/`)
 
-- **kebab-case** for files: `intake.ts`, `claude-teams.ts`
-- **PascalCase** for classes: `BeadsWriter`, `EngineAdapter`
-- **camelCase** for functions/variables: `storiesToBeads`, `taskCount`
+Embedded SQLite database at `.bemadralphy/tasks.db`. Provides task CRUD, dependency tracking, and a dependency-aware ready queue using a recursive CTE ported from Beads.
 
-### Test naming
+### Spec Engine (`src/specs/`)
 
-- Tests live next to source: `foo.ts` → `foo.test.ts`
-- Use descriptive names: `it('should extract stack decisions from YAML front-matter')`
+Internal implementation of spec scaffolding, validation, and archiving. Checks for required headers, SHALL/MUST keywords, and GIVEN/WHEN/THEN scenarios. Replaces all `openspec` CLI calls.
 
-### Commit messages
+### Engine Adapters (`src/engines/`)
+
+Each adapter wraps a coding agent CLI (Claude, Cursor, Codex, etc.) behind a common interface. The `cli-adapter.ts` factory generates adapters with rich prompt construction that injects project context from steering files.
+
+### Execution (`src/phases/execute.ts` + `src/execution/retry.ts`)
+
+The execution loop pulls ready tasks from the TaskManager, dispatches to the selected engine with retry logic, and optionally runs two-stage review (spec compliance + code quality).
+
+### Templates (`src/templates/`)
+
+Markdown prompt templates with `{{variable}}` placeholders for planning and execution. Supports user overrides via a configured templates directory.
+
+---
+
+## Code Conventions
+
+### TypeScript
+
+- **Strict mode** (`"strict": true`)
+- **No implicit `any`**
+- **TSDoc comments** on all exported functions, types, and classes
+- **Explicit return types** for exported functions
+
+### Style
+
+- **2 spaces** for indentation
+- **Single quotes** for strings
+- **Trailing commas** in multiline structures
+- **Prettier** for formatting (`prettier.config.mjs`)
+- **ESLint** for linting (`eslint.config.mjs`)
+
+### Naming
+
+- **kebab-case** for files: `cli-adapter.ts`, `retry.ts`
+- **PascalCase** for classes and types: `TaskManager`, `EngineAdapter`
+- **camelCase** for functions and variables: `storiesToTasks`, `taskCount`
+
+### Commits
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```text
-feat(intake): add support for YAML front-matter parsing
-fix(beads): prevent race condition in writer queue
-docs: update onboarding guide with test instructions
+feat(tasks): add dependency cycle detection
+fix(execute): prevent retry on fatal auth errors
+docs: rewrite architecture guide for v2
 ```
+
+Scopes: `ai`, `tasks`, `specs`, `engines`, `execute`, `planning`, `steering`, `cli`, `docs`, `swarm`, `templates`.
 
 ---
 
@@ -255,41 +301,42 @@ docs: update onboarding guide with test instructions
 ### Add a new engine adapter
 
 1. Create `src/engines/new-engine.ts`
-2. Implement the `EngineAdapter` interface
+2. Use `createCliAdapter()` from `cli-adapter.ts` with the engine's command name, args builder, and hints
 3. Register in `src/engines/index.ts`
-4. Add tests in `tests/engines/adapters.test.ts` (or a dedicated file under `tests/engines/`)
-5. Update README with engine support
-
-For local model support, use the `ollama` adapter and set `OLLAMA_MODEL` if you want a non-default model.
+4. Add to `tests/engines/adapters.test.ts`
+5. Update README engine table
 
 ### Add a new pipeline phase
 
 1. Create `src/phases/new-phase.ts`
-2. Export the phase function
+2. Export the phase function matching the `PipelineContext` signature
 3. Wire into the phase list in `src/orchestrator.ts`
-4. Add tests
+4. Add tests in `tests/phases/`
 5. Update architecture docs
 
-### Add a plugin extension
+### Add a new planning template
 
-1. Create a plugin module (for example `plugins/my-plugin.mjs`).
-2. Export a plugin object with `name` and `register(api)`.
-3. Use `api.registerEngine(...)` for custom engines and `api.onBeforePhase(...)` / `api.onAfterPhase(...)` for hooks.
-4. Load it with `bemadralphy run --plugin ./plugins/my-plugin.mjs` or via config (`plugins: [...]`).
+1. Create `src/templates/my-template.prompt.md`
+2. Use `{{variable}}` placeholders for dynamic content
+3. Load via `loadTemplate('my-template')` in the planning code
+4. Add to the template index if needed
+
+### Add a new AI provider
+
+1. Create `src/ai/new-provider.ts` implementing the `AIProvider` interface
+2. Add to the fallback chain in `src/ai/index.ts`
+3. Add tests
+
+### Add a plugin
+
+1. Create a plugin module (`plugins/my-plugin.mjs`)
+2. Export `{ name, register(api) }`
+3. Use `api.registerEngine(...)` for custom engines or `api.onBeforePhase(...)` / `api.onAfterPhase(...)` for hooks
+4. Load with `--plugin ./plugins/my-plugin.mjs` or via config
 
 ### Update steering file templates
 
-Templates are in `src/phases/steering.ts`. Each template is a function that takes `intake.yaml` + planning outputs and returns file content.
-
-### Debug a failing test
-
-```bash
-# Run with verbose output
-npm test -- --reporter=verbose src/phases/intake.test.ts
-
-# Run with debugger
-node --inspect-brk node_modules/.bin/vitest run src/phases/intake.test.ts
-```
+Templates are in `src/steering/index.ts`. Each template takes `intake.yaml` + planning outputs and returns file content with embedded Superpowers methodology patterns.
 
 ---
 
@@ -297,7 +344,7 @@ node --inspect-brk node_modules/.bin/vitest run src/phases/intake.test.ts
 
 ### "Command not found: bemadralphy"
 
-Make sure you've linked the package:
+Link the package:
 
 ```bash
 npm link
@@ -306,12 +353,12 @@ npm link
 Or run directly:
 
 ```bash
-npm run dev -- --help
+npx tsx src/cli.ts --help
 ```
 
-### Tests failing with "Cannot find module"
+### Tests fail with "Cannot find module"
 
-Rebuild the project:
+Rebuild:
 
 ```bash
 npm run build
@@ -326,18 +373,20 @@ npm install
 npm run build
 ```
 
+### `better-sqlite3` build fails
+
+Ensure you have a C/C++ toolchain installed (see [Prerequisites](#prerequisites)).
+
 ### Engine adapter not working
 
 Check that the engine CLI is installed and authenticated:
 
 ```bash
-ralphy --version
-gemini --version   # if using --engine gemini
-kimi --version     # if using --engine kimi
+claude --version
+cursor --version
 ```
 
-If a run fails, the error includes the exact command invocation that failed.
-Use that command directly in the project root to reproduce and fix auth/config issues.
+The error message includes the exact command that failed. Run it directly to debug.
 
 ---
 
@@ -351,6 +400,6 @@ Use that command directly in the project root to reproduce and fix auth/config i
 
 ## Next Steps
 
-1. Read the [Architecture](architecture.md) doc to understand the system
+1. Read the [Architecture](architecture.md) guide to understand the system
 2. Browse the [ADRs](adr/) to understand key decisions
-3. Pick a [good first issue](https://github.com/hxp-pxh/BeMadRalphy/labels/good%20first%20issue) to start contributing
+3. Pick a [good first issue](https://github.com/hxp-pxh/BeMadRalphy/labels/good%20first%20issue)

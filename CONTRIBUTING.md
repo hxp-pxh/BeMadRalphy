@@ -2,7 +2,7 @@
 
 Thank you for your interest in contributing to BeMadRalphy! This document provides guidelines and instructions for contributing.
 
-> **Note:** The repository contains initial scaffolding, but many commands are still placeholders. The workflow below describes the intended contribution process as implementation progresses.
+---
 
 ## Table of Contents
 
@@ -20,7 +20,7 @@ Thank you for your interest in contributing to BeMadRalphy! This document provid
 
 ## Code of Conduct
 
-This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to the maintainers.
+This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
 ---
 
@@ -28,11 +28,12 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDU
 
 ### Prerequisites
 
-- Node.js 18+ or Bun 1.0+
-- Git
-- npm (recommended)
+- Node.js 18+
+- npm 9+
+- Git 2.30+
+- C/C++ toolchain for `better-sqlite3` native module compilation
 
-### Setup (scaffolding stage)
+### Setup
 
 ```bash
 # Fork the repository on GitHub, then clone your fork
@@ -45,9 +46,11 @@ git remote add upstream https://github.com/hxp-pxh/BeMadRalphy.git
 # Install dependencies
 npm install
 
-# Run tests to verify setup
-npm test
+# Verify everything works
+npm run verify
 ```
+
+For detailed development setup, see [docs/onboarding.md](docs/onboarding.md).
 
 ---
 
@@ -69,12 +72,10 @@ npm test
 
 3. **Make your changes** with tests.
 
-4. **Run checks** before committing (once available):
+4. **Run checks** before committing:
 
    ```bash
-   npm run lint
-   npm run typecheck
-   npm test
+   npm run verify    # typecheck + lint + test
    ```
 
 5. **Commit** using conventional commits (see below).
@@ -87,26 +88,26 @@ npm test
 
 Use descriptive branch names with prefixes:
 
-| Prefix      | Use case                              |
-| ----------- | ------------------------------------- |
-| `feat/`     | New features                          |
-| `fix/`      | Bug fixes                             |
-| `docs/`     | Documentation changes                 |
+| Prefix | Use case |
+| --- | --- |
+| `feat/` | New features |
+| `fix/` | Bug fixes |
+| `docs/` | Documentation changes |
 | `refactor/` | Code refactoring (no behavior change) |
-| `test/`     | Adding or updating tests              |
-| `chore/`    | Maintenance tasks, dependencies       |
+| `test/` | Adding or updating tests |
+| `chore/` | Maintenance tasks, dependencies |
 
 Examples:
 
-- `feat/add-kimi-engine-adapter`
-- `fix/beads-writer-race-condition`
-- `docs/update-onboarding-guide`
+- `feat/add-gemini-engine-adapter`
+- `fix/retry-backoff-overflow`
+- `docs/update-architecture-guide`
 
 ---
 
 ## Commit Messages
 
-We use [Conventional Commits](https://www.conventionalcommits.org/). Format:
+We use [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```text
 <type>(<scope>): <description>
@@ -118,46 +119,47 @@ We use [Conventional Commits](https://www.conventionalcommits.org/). Format:
 
 ### Types
 
-| Type       | Description                                             |
-| ---------- | ------------------------------------------------------- |
-| `feat`     | New feature                                             |
-| `fix`      | Bug fix                                                 |
-| `docs`     | Documentation only                                      |
-| `style`    | Formatting, no code change                              |
+| Type | Description |
+| --- | --- |
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `docs` | Documentation only |
+| `style` | Formatting, no code change |
 | `refactor` | Code change that neither fixes a bug nor adds a feature |
-| `perf`     | Performance improvement                                 |
-| `test`     | Adding or correcting tests                              |
-| `chore`    | Maintenance, dependencies, build                        |
+| `perf` | Performance improvement |
+| `test` | Adding or correcting tests |
+| `chore` | Maintenance, dependencies, build |
 
-### Scope (optional)
+### Scopes
 
-The module or area affected: `intake`, `planning`, `steering`, `scaffold`, `execute`, `verify`, `post`, `engines`, `swarm`, `beads`, `docs`, `cli`.
+The module or area affected: `ai`, `tasks`, `specs`, `engines`, `execute`, `planning`, `steering`, `templates`, `swarm`, `cli`, `config`, `docs`.
 
 ### Examples
 
 ```text
-feat(engines): add Kimi K2.5 adapter
+feat(engines): add Gemini adapter with native API support
 
-Implements the Kimi K2.5 engine adapter using the HTTP API.
-Supports both single-agent and Agent Swarm (PARL) modes.
+Implements the Gemini engine adapter using the generativelanguage API.
+Supports both single-agent and batch execution modes.
 
 Closes #42
 ```
 
 ```text
-fix(beads): serialize writer operations to prevent JSONL conflicts
+fix(tasks): prevent duplicate dependency edges in TaskManager
 
-Adds a single-writer queue for all bd close/update operations.
+Adds a UNIQUE constraint on (task_id, depends_on) and uses
+INSERT OR IGNORE to handle idempotent dependency creation.
 
 Fixes #57
 ```
 
-### Linking Beads Issues
-
-If you're working on a task tracked in Beads, include the Beads ID in your commit:
-
 ```text
-feat(scaffold): generate vitest config (bd-a1b2)
+feat(templates): add brownfield analysis prompt template
+
+Adds a new prompt template for analyzing existing codebases
+during brownfield intake, extracting architecture patterns
+and suggesting minimal-disruption implementation strategies.
 ```
 
 ---
@@ -169,14 +171,14 @@ feat(scaffold): generate vitest config (bd-a1b2)
 2. **Link related issues** using keywords (`Closes #123`, `Fixes #456`).
 
 3. **Ensure all checks pass**:
-   - Lint
-   - Type check
-   - Tests
+   - TypeScript type check
+   - ESLint
+   - All tests (37+ tests across 15 test files)
    - Build
 
 4. **Request review** from maintainers.
 
-5. **Address feedback** promptly. Push additional commits; don't force-push during review.
+5. **Address feedback** promptly. Push additional commits; do not force-push during review.
 
 6. **Squash and merge** is the default merge strategy.
 
@@ -184,7 +186,7 @@ feat(scaffold): generate vitest config (bd-a1b2)
 
 - [ ] Tests added/updated for changes
 - [ ] Documentation updated if needed
-- [ ] Lint and type checks pass
+- [ ] `npm run verify` passes
 - [ ] Commit messages follow conventions
 - [ ] PR description explains the "why"
 
@@ -194,8 +196,8 @@ feat(scaffold): generate vitest config (bd-a1b2)
 
 ### TypeScript
 
-- **Strict mode** enabled (`"strict": true` in tsconfig)
-- **No `any`** unless absolutely necessary (and documented why)
+- **Strict mode** (`"strict": true`)
+- **No `any`** unless documented why
 - **Explicit return types** for exported functions
 - **TSDoc comments** for all exported functions, types, and classes
 
@@ -203,22 +205,22 @@ feat(scaffold): generate vitest config (bd-a1b2)
 
 ````typescript
 /**
- * Converts BMAD stories to Beads issues.
+ * Converts planning stories to internal task manager entries.
  *
  * @param stories - Array of story markdown file paths
- * @param options - Conversion options
- * @returns Array of created Beads issue IDs
- * @throws {BeadsWriteError} If Beads operations fail
+ * @param manager - TaskManager instance for task creation
+ * @returns Array of created task IDs
+ * @throws {TaskCreationError} If task creation fails
  *
  * @example
  * ```ts
- * const ids = await storiesToBeads(['story-1.md', 'story-2.md']);
- * console.log(ids); // ['bd-a1b2', 'bd-c3d4']
+ * const ids = await storiesToTasks(storyPaths, manager);
+ * console.log(ids); // ['story-1-abc123', 'story-2-def456']
  * ```
  */
-export async function storiesToBeads(
+export async function storiesToTasks(
   stories: string[],
-  options?: ConversionOptions,
+  manager: TaskManager,
 ): Promise<string[]> {
   // ...
 }
@@ -226,40 +228,36 @@ export async function storiesToBeads(
 
 ### Formatting
 
-- **Prettier** for formatting (config in `prettier.config.mjs`)
-- **ESLint** for linting (config in `eslint.config.mjs`)
+- **Prettier** for formatting (`prettier.config.mjs`)
+- **ESLint** for linting (`eslint.config.mjs`)
 - **2 spaces** for indentation
 - **Single quotes** for strings
-- **Trailing commas** in multiline
-
-Run formatting:
+- **Trailing commas** in multiline structures
 
 ```bash
-npm run format
+npm run format    # Auto-format
+npm run lint      # Check lint
 ```
 
 ### File Organization
 
 ```text
 src/
-├── cli.ts              # CLI entry point
-├── phases/             # Pipeline phases
-│   ├── explore.ts
-│   ├── intake.ts
-│   ├── planning.ts
-│   ├── steering.ts
-│   ├── scaffold.ts
-│   ├── sync.ts
-│   ├── execute.ts
-│   ├── verify.ts
-│   └── post.ts
-├── engines/            # AI engine adapters
-├── swarm/              # Native swarm integrations
-├── beads/              # Beads integration
-├── docs/               # Documentation generators
-├── scaffold/           # Config generators
-├── specs/              # Living spec management
-└── utils/              # Shared utilities
+  cli.ts                # CLI entry point
+  orchestrator.ts       # Pipeline orchestration
+  ai/                   # AI provider layer
+  templates/            # Prompt templates
+  tasks/                # SQLite task manager
+  specs/                # Spec engine
+  execution/            # Retry logic
+  phases/               # Pipeline phases
+  planning/             # Planning pipeline
+  engines/              # Engine adapters
+  swarm/                # Swarm integrations
+  steering/             # Steering file generation
+  beads/                # Story-to-task conversion
+  plugins/              # Plugin system
+  utils/                # Shared utilities
 ```
 
 ---
@@ -269,36 +267,42 @@ src/
 ### Running Tests
 
 ```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm run test:coverage
-
-# Run specific test file
-npm test -- src/phases/intake.test.ts
+npm test                # All tests
+npm run test:watch      # Watch mode
+npm run test:coverage   # With coverage
+npx vitest run tests/phases/execute.test.ts   # Specific file
 ```
 
 ### Test Structure
 
-- Tests live in the `tests/` directory (e.g., `tests/intake.test.ts`)
-- Use descriptive test names: `it('should extract stack decisions from YAML front-matter')`
+- Tests live in `tests/` (mirrors `src/` structure)
+- Use descriptive names: `it('closes successful tasks and updates failed tasks')`
 - Test both happy path and error cases
-- Mock external dependencies (AI engines, file system, Beads CLI)
+- Mock AI providers and engine CLIs (not real API calls in tests)
+- Tests use fallback behavior and do not require API keys
+
+### Test Files
+
+| Test file | What it covers |
+| --- | --- |
+| `tests/orchestrator.test.ts` | Init, doctor, pipeline orchestration |
+| `tests/phases/execute.test.ts` | Execution loop, task state transitions |
+| `tests/phases/verify-post.test.ts` | Spec validation, post-phase behavior |
+| `tests/planning.test.ts` | AI planning pipeline and fallback |
+| `tests/sync.test.ts` | Story-to-task sync with TaskManager |
+| `tests/engines/adapters.test.ts` | Engine adapter contracts |
+| `tests/e2e/pipeline-external-fakes.test.ts` | Full pipeline end-to-end |
 
 ### Coverage Targets
 
 - **80%** coverage for new code
-- Don't sacrifice meaningful tests for coverage numbers
+- Meaningful tests over coverage numbers
 
 ---
 
 ## Issue Templates
 
-When opening issues, please use the appropriate template:
+When opening issues, use the appropriate template:
 
 - **Bug Report**: For bugs and unexpected behavior
 - **Feature Request**: For new features and enhancements
@@ -311,6 +315,6 @@ Templates are in `.github/ISSUE_TEMPLATE/`.
 
 - Open a [Discussion](https://github.com/hxp-pxh/BeMadRalphy/discussions) for questions
 - Check existing issues before opening new ones
-- Join the community chat (link TBD)
+- See [docs/architecture.md](docs/architecture.md) for system design details
 
 Thank you for contributing!

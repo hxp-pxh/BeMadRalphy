@@ -1,209 +1,247 @@
 # BeMadRalphy
 
-<!-- markdownlint-disable MD060 MD032 -->
-
-**Be**(ads) + (B)**Mad** + **Ralphy** + [OpenSpec](https://github.com/Fission-AI/OpenSpec) + [Superpowers](https://github.com/obra/superpowers) — five parents, one self-contained CLI.
+**Be**(ads) + (B)**Mad** + **Ralphy** + [OpenSpec](https://github.com/Fission-AI/OpenSpec) + [Superpowers](https://github.com/obra/superpowers) -- five parents, one self-contained CLI.
 
 BeMadRalphy is a product-delivery operating system for AI-assisted teams: methodology first, code generation second.
 
-> End-to-end automated coding: idea in → planning → task graph → swarm-aware execution → living specs → deployment.
+> End-to-end automated coding: idea in, planning, task graph, swarm-aware execution, living specs, deployment out.
 
 [![npm version](https://img.shields.io/npm/v/bemadralphy.svg)](https://www.npmjs.com/package/bemadralphy)
 [![npm downloads](https://img.shields.io/npm/dm/bemadralphy.svg)](https://www.npmjs.com/package/bemadralphy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Status
+---
 
-BeMadRalphy v2 is a self-contained CLI: planning, task management, specs, and execution orchestration run internally.
+## Quick Links
 
-Current implementation includes:
-
-- `idea.md`/`plan.md` intake with `.bemadralphy/intake.yaml` output
-- Direct AI planning pipeline (product brief -> PRD -> architecture -> stories) with fallback generation
-- Embedded SQLite task manager in `.bemadralphy/tasks.db` with dependency-aware ready queue
-- Internal spec lifecycle (`openspec/` scaffold, validation, archive) without external OpenSpec CLI
-- Superpowers-inspired execution methodology (TDD guardrails, two-stage review, verification-before-completion)
-- Per-phase state persistence in `.bemadralphy/state.yaml` plus run history and cost tracking
+- First local run: [docs/getting-started.md](docs/getting-started.md)
+- Contributor setup: [docs/onboarding.md](docs/onboarding.md)
+- Architecture deep dive: [docs/architecture.md](docs/architecture.md)
+- Positioning and ICP: [docs/positioning.md](docs/positioning.md)
 
 ---
 
-## Start Here
+## What Is BeMadRalphy?
 
-- First local run guide: [`docs/getting-started.md`](docs/getting-started.md)
-- Contributor/developer setup: [`docs/onboarding.md`](docs/onboarding.md)
-- Architecture and flow details: [`docs/architecture.md`](docs/architecture.md)
+BeMadRalphy v2 is a **self-contained CLI agent**. All planning, task management, specification lifecycle, and execution orchestration run internally -- no external parent CLIs required.
+
+It absorbs the best ideas from five projects:
+
+| Parent | What BeMadRalphy absorbs |
+| --- | --- |
+| [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) | Planning prompts, workflow patterns, agent personas |
+| [Beads](https://github.com/steveyegge/beads) | Task schema, dependency resolution, ready-queue algorithm |
+| [Ralphy](https://github.com/michaelshimeles/ralphy) | Execution orchestration, retry logic, prompt construction |
+| [OpenSpec](https://github.com/Fission-AI/OpenSpec) | Spec templates, validation rules, delta/archive lifecycle |
+| [Superpowers](https://github.com/obra/superpowers) | TDD guardrails, two-stage review, anti-rationalization patterns |
+
+The result is a single CLI that takes you from a rough idea to a deployed, documented, and tested codebase with minimal human intervention.
 
 ---
 
-## What is BeMadRalphy?
+## Prerequisites
 
-BeMadRalphy is a self-contained CLI agent that absorbs:
+- **Node.js 18+** (or Bun 1.0+)
+- **Git**
+- **At least one AI API key** (`ANTHROPIC_API_KEY` or `OPENAI_API_KEY`) for the planning phase
+- **At least one coding agent CLI** on PATH (e.g., `claude`, `cursor`, `codex`, `kimi`, `gemini`, `ollama`)
+- Optional: `gh` (GitHub CLI) for `--create-pr` support
+- Optional: `ollama` for local model execution
 
-- **[BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD)** — planning prompts and workflow patterns
-- **[Beads](https://github.com/steveyegge/beads)** — task schema and dependency-ready logic
-- **[Ralphy](https://github.com/michaelshimeles/ralphy)** — execution orchestration and retry patterns
-- **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** — spec templates and validation/archive model
-- **[Superpowers](https://github.com/obra/superpowers)** — subagent workflow methodology and review guardrails
+No external `bmad`, `bd`, `openspec`, or `ralphy` CLIs are required.
 
-Into a single, seamless pipeline that takes you from a rough idea to a deployed, documented, and tested codebase — with minimal human intervention.
+---
 
-### Positioning and ICP
+## Installation
 
-- Primary ICP: product teams of 2-10 engineers shipping continuously
-- Secondary ICPs: solo builders and agencies operating repeatable delivery workflows
-- Differentiation: not "write code faster," but "ship products systematically" via BMAD-driven intent-to-delivery
+```bash
+# npm (recommended)
+npm install -g bemadralphy
 
-For full positioning rationale and risk mitigation strategy, see [`docs/positioning.md`](docs/positioning.md).
+# pnpm
+pnpm add -g bemadralphy
+
+# bun
+bun add -g bemadralphy
+
+# yarn
+yarn global add bemadralphy
+
+# or use the install script
+curl -fsSL https://raw.githubusercontent.com/hxp-pxh/BeMadRalphy/main/install.sh | bash
+```
+
+Verify:
+
+```bash
+bemadralphy --version
+bemadralphy --help
+```
+
+If your shell cannot find `bemadralphy` after global install:
+
+```bash
+npx bemadralphy --help
+
+# or add npm global bin to PATH
+export PATH="$(npm config get prefix)/bin:$PATH"
+```
+
+### Docker
+
+```bash
+docker pull ghcr.io/hxp-pxh/bemadralphy:latest
+docker run -v $(pwd):/workspace ghcr.io/hxp-pxh/bemadralphy init
+```
+
+---
+
+## Quick Start
+
+```bash
+# 1. Create a new project directory
+mkdir my-awesome-app && cd my-awesome-app
+
+# 2. Initialize BeMadRalphy
+npx bemadralphy init
+
+# 3. Write your idea
+echo "A todo app with real-time sync and offline support" > idea.md
+
+# 4. Set an API key for planning
+export ANTHROPIC_API_KEY=sk-ant-...
+
+# 5. Run the full pipeline
+npx bemadralphy run
+
+# 6. Check environment readiness any time
+npx bemadralphy doctor
+```
+
+BeMadRalphy will:
+
+1. Parse your idea and detect greenfield vs. brownfield
+2. Generate a full PRD, architecture, and stories via direct AI calls
+3. Create steering files for every major AI agent/IDE
+4. Scaffold the project (git, configs, CI)
+5. Convert stories to dependency-aware tasks in an embedded SQLite database
+6. Execute tasks with retry logic and optional two-stage review
+7. Verify the implementation against living specs
+8. Generate documentation and deploy
 
 ---
 
 ## The 9-Phase Pipeline
 
-```mermaid
-flowchart TD
-  subgraph explore [Phase 0: Explore]
-    ExploreCmd[bemadralphy explore]
-    ExploreReport[Exploration report]
-  end
-  subgraph intake [Phase 1: Idea Intake]
-    IdeaMD[idea.md]
-    DetectMode{Greenfield or brownfield?}
-    IntakeYAML[intake.yaml]
-  end
-  subgraph planning [Phase 2: Planning]
-    Brief[Product brief]
-    PRD[PRD]
-    Arch[Architecture]
-    Stories[Epics and stories]
-  end
-  subgraph steer [Phase 3: Agent Steering]
-    AllFiles[14+ steering files]
-  end
-  subgraph scaffold [Phase 4: Scaffolding]
-    GitInit[git init + monorepo]
-    PkgJson[package.json]
-  end
-  subgraph tasks [Phase 5: Task Sync]
-    Beads[(Beads graph)]
-    TasksMD[tasks.md]
-  end
-  subgraph exec [Phase 6: Execution]
-    Detect{Swarm capable?}
-    NativeSwarm[Native swarm]
-    ProcessParallel[Process parallel]
-  end
-  subgraph verify [Phase 7: Verification]
-    Completeness[Completeness]
-    Correctness[Correctness]
-    Coherence[Coherence]
-  end
-  subgraph post [Phase 8: Post-Execution]
-    CodeReview[Code review]
-    Docs[Documentation]
-    Deploy[Deployment]
-  end
-  ExploreCmd --> ExploreReport --> IdeaMD
-  IdeaMD --> DetectMode --> IntakeYAML
-  IntakeYAML --> Brief --> PRD --> Arch --> Stories
-  Stories --> AllFiles --> GitInit --> PkgJson
-  PkgJson --> Beads --> TasksMD
-  TasksMD --> Detect
-  Detect -->|yes| NativeSwarm
-  Detect -->|no| ProcessParallel
-  NativeSwarm --> Completeness
-  ProcessParallel --> Completeness
-  Completeness --> Correctness --> Coherence
-  Coherence --> CodeReview --> Docs --> Deploy
+```text
+Phase 0   Phase 1     Phase 2      Phase 3       Phase 4
+Explore > Intake    > Planning   > Steering    > Scaffold
+                                                    |
+Phase 8   Phase 7     Phase 6      Phase 5         v
+Post    < Verify    < Execute    < Task Sync  <-----+
 ```
 
-| Phase                 | What happens                                                                                                           |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| **0. Explore**        | Optional. Investigate codebase (brownfield) or problem domain (greenfield) before committing to a plan.                |
-| **1. Idea Intake**    | Read `idea.md`, detect greenfield vs brownfield, classify project type, ask remaining questions, output `intake.yaml`. |
-| **2. Planning**       | Direct AI calls generate product brief -> PRD -> architecture -> stories using embedded templates.                        |
-| **3. Agent Steering** | Generate 14+ steering files for every IDE/agent (Cursor, Claude, Copilot, Windsurf, Cline, Kiro, etc.).                |
-| **4. Scaffolding**    | `git init`, monorepo structure, `package.json`, `.gitignore`, `.env`, test/lint/CI configs.                            |
-| **5. Task Sync**      | Convert stories to internal SQLite tasks (`.bemadralphy/tasks.db`) and generate `tasks.md`.                             |
-| **6. Execution**      | Swarm-aware execution using internal ready queue, retry logic, and optional two-stage review loops.                     |
-| **7. Verification**   | Semantic check: completeness, correctness, coherence. Fix-up tasks fed back to Beads if needed.                        |
-| **8. Post-Execution** | Code review, full docs suite, living specs, deployment, release management, final summary.                             |
+| Phase | What happens |
+| --- | --- |
+| **0. Explore** | Optional. Investigate a codebase or problem domain before planning. |
+| **1. Intake** | Read `idea.md`, detect greenfield/brownfield, classify project, output `intake.yaml`. |
+| **2. Planning** | Direct AI calls generate product brief, PRD, architecture, and stories using embedded templates. |
+| **3. Steering** | Generate 14+ steering files for every IDE and agent (Cursor, Claude, Copilot, Windsurf, Cline, Kiro, etc.). |
+| **4. Scaffold** | `git init`, monorepo structure, `package.json`, lint/test/CI configs. |
+| **5. Task Sync** | Convert stories to tasks in `.bemadralphy/tasks.db` (embedded SQLite) and generate `tasks.md`. |
+| **6. Execute** | Swarm-aware execution using the internal ready queue, retry with exponential backoff, and optional two-stage review (spec compliance + code quality). |
+| **7. Verify** | Semantic check: completeness, correctness, coherence. Fix-up tasks fed back if needed. |
+| **8. Post** | Code review, full documentation suite, living specs, deployment, release management. |
 
 ---
 
 ## AI Engine Support
 
-- `claude` (native swarm)
-- `kimi` (native swarm)
-- `codex` (native swarm)
-- `cursor`
-- `opencode`
-- `qwen`
-- `copilot`
-- `gemini`
+BeMadRalphy delegates code execution to whichever coding agent CLI you have installed:
 
-Planning model selection is independent and can use Anthropic/OpenAI/Ollama via direct API integration.
+| Engine | Native swarm |
+| --- | --- |
+| `claude` (default) | Yes |
+| `kimi` | Yes |
+| `codex` | Yes |
+| `cursor` | No |
+| `opencode` | No |
+| `qwen` | No |
+| `copilot` | No |
+| `gemini` | No |
+| `ollama` | No |
 
----
-
-## Autonomy Modes
-
-| Mode                                 | Description                                                                                      |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| **Full Autonomous** (`--mode auto`)  | Zero pauses after Q&A. Everything runs unattended.                                               |
-| **Hybrid** (`--mode hybrid`)         | Planning gates only (after brief, PRD, architecture, stories). Execution is autonomous. Default. |
-| **Supervised** (`--mode supervised`) | Planning gates + execution milestones (after scaffolding, each epic, before deployment).         |
+Planning model selection is independent: the planning phase uses the Anthropic, OpenAI, or Ollama API directly (configured via API keys or `--model`).
 
 ---
 
 ## CLI Commands
 
 ```bash
-# Initialize a new project
-npx bemadralphy init
-
-# Notes:
-# - Creates .bemadralphy/, openspec/, and _bmad-output/
-# - Initializes `bd` and `openspec`
-# - Fails fast if required CLIs are missing
+# Initialize a project
+bemadralphy init
 
 # Run the full pipeline
-npx bemadralphy run
+bemadralphy run
+bemadralphy run --mode auto --engine claude --max-parallel 5 --budget 50
 
-# Run with specific options
-npx bemadralphy run --mode auto --engine claude --max-parallel 5 --budget 50
+# Run planning phases only (intake + planning + steering)
+bemadralphy plan
+bemadralphy plan --model claude-sonnet-4-20250514
 
-# Run with execution/audience profiles
-npx bemadralphy run --execution-profile safe --audience-profile product-team
+# Run execution phases only (sync + execute)
+bemadralphy execute --engine claude
 
-# Preview pipeline and estimated cost without execution
-npx bemadralphy run --dry-run --output json
+# Resume a failed or interrupted run
+bemadralphy resume
+bemadralphy resume --from execute
 
-# Resume a failed/interrupted run
-npx bemadralphy run --resume
-
-# Replay a previous run from history
-npx bemadralphy replay <runId> --from-phase execute
+# Preview pipeline and cost estimate without execution
+bemadralphy run --dry-run --output json
 
 # Explore before planning (optional)
-npx bemadralphy explore "How should I structure authentication?"
+bemadralphy explore "How should I structure authentication?"
 
 # Check pipeline status
-npx bemadralphy status
+bemadralphy status
 
-# Show run history (human or JSON)
-npx bemadralphy history
-npx bemadralphy history --output json
+# Show run history
+bemadralphy history
+bemadralphy history --output json
 
-# Check local dependency readiness
-npx bemadralphy doctor
-npx bemadralphy doctor --output json
+# Replay a previous run
+bemadralphy replay <runId> --from-phase execute
+
+# Check environment readiness
+bemadralphy doctor
+bemadralphy doctor --output json
+
+# Manage tasks
+bemadralphy tasks list
+bemadralphy tasks list --status open
+bemadralphy tasks show <id>
+bemadralphy tasks retry <id>
+
+# Set persistent config
+bemadralphy config set engine claude
+bemadralphy config set mode auto
 ```
+
+---
+
+## Autonomy Modes
+
+| Mode | Description |
+| --- | --- |
+| **Full Autonomous** (`--mode auto`) | Zero pauses after intake Q&A. Everything runs unattended. |
+| **Hybrid** (`--mode hybrid`) | Planning gates only (after brief, PRD, architecture, stories). Execution is autonomous. Default. |
+| **Supervised** (`--mode supervised`) | Planning gates + execution milestones (after scaffolding, each epic, before deployment). |
 
 ---
 
 ## The `idea.md` File
 
-BeMadRalphy starts with an `idea.md` file in your project root. It can be as simple or detailed as you want. The current scaffolding writes intake results to `.bemadralphy/intake.yaml`.
+BeMadRalphy starts with an `idea.md` file in your project root. It can be as simple or as detailed as you want.
 
 ### Minimal example
 
@@ -239,84 +277,87 @@ Key features:
 - AI coach for personalized recommendations
 ```
 
-BeMadRalphy extracts what you've already decided and only asks about the rest.
+BeMadRalphy extracts what you have already decided and only asks about the rest.
 
 ---
 
-## Greenfield vs Brownfield
+## Greenfield vs. Brownfield
 
-| Mode           | When                       | What happens                                                                         |
-| -------------- | -------------------------- | ------------------------------------------------------------------------------------ |
-| **Greenfield** | No existing codebase       | Full pipeline: idea → PRD → architecture → stories → build from scratch              |
-| **Brownfield** | Existing codebase detected | Analyze codebase, generate proposal + spec deltas, skip scaffolding, execute changes |
+| Mode | When | What happens |
+| --- | --- | --- |
+| **Greenfield** | No existing codebase | Full pipeline: idea, PRD, architecture, stories, build from scratch. |
+| **Brownfield** | Existing codebase detected | Analyze codebase, generate proposal + spec deltas, skip scaffolding, execute changes. |
 
 Brownfield is auto-detected (looks for `package.json`, `src/`, etc.) or forced with `--brownfield`.
 
 ---
 
-## Living Specs (OpenSpec-compatible)
+## Living Specs
 
 After the initial build, BeMadRalphy generates living specifications in `openspec/specs/`:
 
 ```text
 openspec/
-├── specs/
-│   ├── auth/spec.md
-│   ├── workouts/spec.md
-│   └── goals/spec.md
-├── changes/
-│   └── archive/
+  specs/
+    auth/spec.md
+    workouts/spec.md
+    goals/spec.md
+  changes/
+    archive/
 ```
 
-For subsequent brownfield changes, new requirements are expressed as **delta specs** (ADDED/MODIFIED/REMOVED) against the current specs. On completion, deltas merge into the main specs.
+For subsequent brownfield changes, new requirements are expressed as **delta specs** (ADDED/MODIFIED/REMOVED) against the current specs. On completion, deltas merge into the main specs. All spec validation and archiving runs internally -- no external `openspec` CLI needed.
 
 ---
 
-## Target Project Structure (after scaffolding)
+## Target Project Structure
+
+After scaffolding, your project looks like:
 
 ```text
 your-project/
-├── .bemadralphy/          # State, cost log, failures log, intake.yaml
-│   ├── state.yaml
-│   ├── cost.log
-│   └── failures.log
-├── .beads/                # Beads task graph
-│   └── issues.jsonl
-├── _bmad/                 # BMAD playbooks (read-only)
-├── _bmad-output/          # Planning artifacts
-│   ├── product-brief.md
-│   ├── prd.md
-│   ├── architecture.md
-│   └── stories/
-├── openspec/              # Living specs
-│   └── specs/
-├── docs/
-│   ├── adr/               # Architecture Decision Records
-│   ├── onboarding.md
-│   └── runbook.md
-├── src/                   # Your application code
-├── tests/
-├── .github/
-│   ├── workflows/
-│   ├── ISSUE_TEMPLATE/
-│   └── pull_request_template.md
-├── AGENTS.md              # Universal agent steering
-├── CLAUDE.md              # Claude-specific steering
-├── .cursorrules           # Cursor-specific steering
-├── idea.md                # Your original idea
-├── .bemadralphy/intake.yaml  # Processed intake
-├── tasks.md               # Human-readable task list
-├── package.json
-└── README.md
+  .bemadralphy/             # Internal state
+    state.yaml              # Pipeline state and checkpoints
+    tasks.db                # SQLite task database
+    intake.yaml             # Processed intake decisions
+    cost.log                # Per-task cost tracking
+    failures.log            # Phase failure log
+    runs.jsonl              # Append-only run history
+  _bmad-output/             # Planning artifacts
+    product-brief.md
+    prd.md
+    architecture.md
+    stories/
+  openspec/                 # Living specs
+    specs/
+    changes/
+      archive/
+  docs/
+    adr/                    # Architecture Decision Records
+    onboarding.md
+    runbook.md
+  src/                      # Your application code
+  tests/
+  .github/
+    workflows/
+    ISSUE_TEMPLATE/
+    pull_request_template.md
+  AGENTS.md                 # Universal agent steering
+  CLAUDE.md                 # Claude-specific steering
+  .cursorrules              # Cursor-specific steering
+  idea.md                   # Your original idea
+  tasks.md                  # Human-readable task list
+  package.json
+  README.md
 ```
 
 ---
 
 ## Configuration
 
-### `.bemadralphy/state.yaml`
+### State file (`.bemadralphy/state.yaml`)
 
-Tracks pipeline state for resumability and recovery:
+Tracks pipeline state for resumability:
 
 ```yaml
 phase: execution
@@ -334,34 +375,27 @@ Resume and replay behavior:
 
 - `--resume` retries the failed phase when a run fails.
 - `--resume` starts at the next phase when the previous phase completed successfully.
-- completed runs clear `resumeFromPhase`, so a later `--resume` starts fresh instead of re-running `post`.
-- `replay <runId>` resolves from the latest run-history record for that `runId` (not the first row).
+- Completed runs clear `resumeFromPhase`, so a later `--resume` starts fresh.
+- `replay <runId>` resolves from the latest run-history record for that `runId`.
 
-Run/cost logs are append-only JSONL and use atomic append writes:
+### Persistent defaults via config file
 
-- `.bemadralphy/runs.jsonl` (history)
-- `.bemadralphy/cost.log` (cost tracking)
-- `.bemadralphy/failures.log` (phase failures)
-
-### Run defaults via config file
-
-You can define persistent defaults in either `.bemadralphyrc` (YAML/JSON) or `bemad.config.js`.
-
-Example `.bemadralphyrc`:
+Define defaults in `.bemadralphyrc` (YAML/JSON) or `bemad.config.js`:
 
 ```yaml
+# .bemadralphyrc
 mode: hybrid
-engine: ollama
+engine: claude
 maxParallel: 2
 executionProfile: balanced
 output: text
+model: claude-sonnet-4-20250514
 plugins:
   - ./bemad.plugins/local-plugin.mjs
 ```
 
-Example `bemad.config.js`:
-
 ```js
+// bemad.config.js
 export default {
   mode: 'hybrid',
   engine: 'claude',
@@ -371,196 +405,90 @@ export default {
 
 CLI flags always override config file values.
 
-### Flags
+### Flags reference
 
-| Flag                              | Description                             |
-| --------------------------------- | --------------------------------------- |
-| `--mode auto\|hybrid\|supervised` | Autonomy mode                           |
-| `--engine <name>`                 | AI engine to use                        |
-| `--planning-engine <name>`        | Override engine for planning phase only |
-| `--max-parallel N`                | Max parallel tasks (default: 3)         |
-| `--execution-profile <profile>`   | Guardrails profile: `safe\|balanced\|fast` |
-| `--audience-profile <profile>`    | ICP profile: `solo-dev\|agency-team\|product-team\|enterprise-team` |
-| `--budget N`                      | Cost cap in USD                         |
-| `--brownfield`                    | Force brownfield mode                   |
-| `--swarm native\|process\|off`    | Override swarm detection                |
-| `--create-pr`                     | Create PRs for each task                |
-| `--dry-run`                       | Preflight plan + cost estimate only     |
-| `--resume`                        | Resume from latest checkpoint           |
-| `--from-phase <name>`             | Start at a specific phase               |
-| `--output text\|json`             | Human-readable or structured output     |
-| `--plugin <paths...>`             | Load custom plugin modules              |
+| Flag | Description |
+| --- | --- |
+| `--mode auto\|hybrid\|supervised` | Autonomy mode |
+| `--engine <name>` | AI engine for execution |
+| `--planning-engine <name>` | Override engine for planning phase only |
+| `--model <name>` | Model for direct AI planning calls |
+| `--timeout <seconds>` | Task timeout hint |
+| `--max-parallel N` | Max parallel tasks (default: 3) |
+| `--execution-profile <profile>` | Guardrails: `safe\|balanced\|fast` |
+| `--audience-profile <profile>` | ICP: `solo-dev\|agency-team\|product-team\|enterprise-team` |
+| `--budget N` | Cost cap in USD |
+| `--brownfield` | Force brownfield mode |
+| `--swarm native\|process\|off` | Override swarm detection |
+| `--create-pr` | Create PRs for each task |
+| `--dry-run` | Preflight plan + cost estimate only |
+| `--resume` | Resume from latest checkpoint |
+| `--from-phase <name>` | Start at a specific phase |
+| `--output text\|json` | Human-readable or structured output |
+| `--plugin <paths...>` | Load custom plugin modules |
 
 ### Execution profiles
 
-- `safe`: single-lane execution defaults, process-mode bias, lowest coordination risk
-- `balanced` (default): controlled concurrency for day-to-day product work
-- `fast`: maximum requested concurrency for throughput-focused runs
+- **safe**: Single-lane execution, process-mode bias, lowest coordination risk.
+- **balanced** (default): Controlled concurrency for day-to-day product work.
+- **fast**: Maximum requested concurrency for throughput-focused runs.
 
 ---
 
-## Installation
+## Internal Architecture (High-Level)
 
-### Quick Install (Recommended)
-
-```bash
-# npm
-npm install -g bemadralphy
-
-# pnpm
-pnpm add -g bemadralphy
-
-# bun
-bun add -g bemadralphy
-
-# yarn
-yarn global add bemadralphy
-
-# or use the install script
-curl -fsSL https://raw.githubusercontent.com/hxp-pxh/BeMadRalphy/main/install.sh | bash
+```text
+  idea.md
+     |
+     v
+  [ AI Provider ] -- Anthropic / OpenAI / Ollama
+     |
+     v
+  [ Planning Templates ] -- product-brief / PRD / architecture / stories
+     |
+     v
+  [ TaskManager ] -- embedded SQLite (.bemadralphy/tasks.db)
+     |                 dependency-aware ready queue (recursive CTE)
+     v
+  [ Engine Adapters ] -- claude / cursor / codex / kimi / gemini / ollama / ...
+     |                    rich prompt construction with project context
+     v
+  [ Retry + Review ] -- exponential backoff, error classification
+     |                   two-stage review (spec compliance + code quality)
+     v
+  [ Spec Engine ] -- internal validate / archive / delta merge
+     |
+     v
+  delivered project
 ```
 
-Verify the install:
+For the full module-level walkthrough, see [docs/architecture.md](docs/architecture.md).
 
-```bash
-bemadralphy --version
-bemadralphy --help
-```
-
-If your shell cannot find `bemadralphy` right after global install:
-
-```bash
-# still works without global PATH wiring
-npx bemadralphy --help
-
-# if you use a custom npm prefix, add its bin dir to PATH
-export PATH="$(npm config get prefix)/bin:$PATH"
-```
-
-### Docker
-
-```bash
-# Pull from GitHub Container Registry
-docker pull ghcr.io/hxp-pxh/bemadralphy:latest
-
-# Run
-docker run -v $(pwd):/workspace ghcr.io/hxp-pxh/bemadralphy init
-```
-
-For detailed first-run setup, see [`docs/getting-started.md`](docs/getting-started.md).
-
-### Install required external CLIs
-
-```bash
-# Ralphy
-sudo npm install -g ralphy-cli
-
-# BMAD
-sudo npm install -g bmad-method
-
-# Beads
-sudo npm install -g @beads/bd
-
-# OpenSpec
-sudo npm install -g @fission-ai/openspec
-```
-
-Verify:
-
-```bash
-ralphy --version
-bmad --version
-bd --version
-openspec --version
-```
-
-### Install BeMadRalphy dependencies
-
-```bash
-npm install
-npm run build
-node dist/cli.js --help
-```
-
-### Prerequisites
-
-- Node.js 18+ or Bun 1.0+
-- Git
-- Ralphy CLI (`ralphy`) for execution fallback and parallel orchestration
-- BMAD CLI (`bmad`)
-- Beads CLI (`bd`)
-- OpenSpec CLI (`openspec`)
-- Optional local engine: Ollama (`ollama`) when using `--engine ollama`
+---
 
 ## Fail-Fast Behavior
 
-`init` and `run` are strict by design for local-product reliability:
+BeMadRalphy is strict by design:
 
-- Missing required CLIs fail immediately with actionable errors.
-- Planning fails if BMAD command fails or required artifacts are missing.
-- Sync fails if stories cannot be parsed or Beads writes fail.
-- Execute fails for unknown/unavailable engines.
-- Verify/Post fail if OpenSpec commands fail.
+- **Init** scaffolds `.bemadralphy/`, `openspec/`, `_bmad-output/`, and starter `idea.md`. No external CLIs are auto-installed.
+- **Doctor** checks Node, npm, API keys, SQLite access, and at least one coding agent CLI.
+- **Planning** fails if AI provider calls fail and fallback generation cannot produce required artifacts.
+- **Sync** fails if stories cannot be parsed or task creation fails.
+- **Execute** fails for unknown or unavailable engines.
+- **Verify** fails if internal spec validation detects issues.
 
-`init` is now soft for onboarding:
-
-- Always scaffolds `.bemadralphy/`, `openspec/`, `_bmad-output/`, and starter `idea.md`.
-- If `bd`, `bmad`, `openspec`, or `ralphy` are missing, it attempts `npm install -g` automatically.
-- If those CLIs already exist and npm is available, it checks for newer npm releases and upgrades to latest when needed.
-- If npm packages are installed globally but CLIs are not on PATH, it creates command shims in `~/.local/bin` when possible.
-- If auto-install/update fails, `init` still completes with warnings and reports actionable install hints.
-- Use `bemadralphy doctor` to check readiness before full pipeline runs.
-
-Planning fallback behavior:
-
-- If BMAD install/update enters an interactive prompt or times out in unattended mode, BeMadRalphy generates minimal fallback planning artifacts so the pipeline can continue.
-- If BMAD exits successfully but still leaves missing/empty planning artifacts, the same fallback is generated.
-- Fallback files include explicit markers indicating BMAD automation needs to be rerun when non-interactive BMAD workflows are available.
-
-Typical recovery flow:
+Recovery is straightforward:
 
 ```bash
-# 1) Verify toolchain
-ralphy --version && bmad --version && bd --version && openspec --version
+# Check environment
+bemadralphy doctor
 
-# 2) Re-run setup and checks
-npm install
-npm run verify
-node dist/cli.js init
+# Fix the issue (API key, engine CLI, etc.)
+export ANTHROPIC_API_KEY=sk-ant-...
 
-# 3) Run pipeline
-node dist/cli.js run --mode auto --engine ralphy
+# Re-run
+bemadralphy run
 ```
-
----
-
-## Quick Start
-
-```bash
-# 1. Create a new directory
-mkdir my-awesome-app && cd my-awesome-app
-
-# 2. Initialize BeMadRalphy
-npx bemadralphy init
-
-# 3. Write your idea
-echo "A todo app with real-time sync and offline support" > idea.md
-
-# 4. Run the pipeline
-npx bemadralphy run
-```
-
-For full expected outputs and fail-fast troubleshooting, see [`docs/getting-started.md`](docs/getting-started.md).
-
-That's it. BeMadRalphy will:
-
-1. Ask clarifying questions about your stack preferences
-2. Generate a full PRD and architecture
-3. Create all the steering files for your AI agents
-4. Scaffold the project
-5. Execute all tasks with tests
-6. Verify the implementation
-7. Generate documentation and deploy
 
 ---
 
@@ -570,7 +498,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
 
 - Fork/clone workflow
 - Branch naming conventions
-- Commit message format
+- Commit message format (Conventional Commits)
 - PR process
 - Code standards
 
@@ -578,7 +506,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
 
 ## License
 
-[MIT](LICENSE) — Copyright (c) 2026 hxp-pxh
+[MIT](LICENSE) -- Copyright (c) 2026 hxp-pxh
 
 ---
 
@@ -586,7 +514,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
 
 BeMadRalphy builds on the shoulders of giants:
 
-- [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) — The planning framework
-- [Beads](https://github.com/steveyegge/beads) — The task graph and memory layer
-- [Ralphy](https://github.com/michaelshimeles/ralphy) — The execution loop inspiration ([site](https://ralphy.goshen.fyi/))
-- [OpenSpec](https://github.com/Fission-AI/OpenSpec) — The living spec model
+- [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) -- The planning framework
+- [Beads](https://github.com/steveyegge/beads) -- The task graph and dependency model
+- [Ralphy](https://github.com/michaelshimeles/ralphy) -- The execution loop and retry patterns ([site](https://ralphy.goshen.fyi/))
+- [OpenSpec](https://github.com/Fission-AI/OpenSpec) -- The living spec model
+- [Superpowers](https://github.com/obra/superpowers) -- The TDD and review methodology
