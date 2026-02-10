@@ -414,6 +414,23 @@ yarn global add bemadralphy
 curl -fsSL https://raw.githubusercontent.com/hxp-pxh/BeMadRalphy/main/install.sh | bash
 ```
 
+Verify the install:
+
+```bash
+bemadralphy --version
+bemadralphy --help
+```
+
+If your shell cannot find `bemadralphy` right after global install:
+
+```bash
+# still works without global PATH wiring
+npx bemadralphy --help
+
+# if you use a custom npm prefix, add its bin dir to PATH
+export PATH="$(npm config get prefix)/bin:$PATH"
+```
+
 ### Docker
 
 ```bash

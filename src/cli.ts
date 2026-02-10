@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { runExplore, runHistory, runInit, runPipeline, runReplay, runStatus } from './orchestrator.js';
 
 const program = new Command();
@@ -7,7 +10,7 @@ const program = new Command();
 program
   .name('bemadralphy')
   .description('CLI orchestrator for end-to-end automated coding pipelines')
-  .version('0.1.0');
+  .version(resolveCliVersion());
 
 program
   .command('init')
@@ -111,4 +114,19 @@ function maybeOption(command: Command, key: string, value: unknown): unknown {
     return value;
   }
   return undefined;
+}
+
+function resolveCliVersion(): string {
+  try {
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const packageJsonPath = path.join(here, '..', 'package.json');
+    const raw = readFileSync(packageJsonPath, 'utf-8');
+    const parsed = JSON.parse(raw) as { version?: unknown };
+    if (typeof parsed.version === 'string' && parsed.version.trim().length > 0) {
+      return parsed.version;
+    }
+  } catch {
+    // fall through to default
+  }
+  return '0.0.0';
 }

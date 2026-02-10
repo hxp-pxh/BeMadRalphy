@@ -27,6 +27,24 @@ bd --version
 openspec --version
 ```
 
+Install BeMadRalphy and verify:
+
+```bash
+npm install -g bemadralphy
+bemadralphy --version
+bemadralphy --help
+```
+
+If global install succeeded but command is not found:
+
+```bash
+# fallback that always works
+npx bemadralphy --help
+
+# optional: add npm global bin to PATH
+export PATH="$(npm config get prefix)/bin:$PATH"
+```
+
 ## 10-Minute First Run
 
 ### 1) Build this project once
