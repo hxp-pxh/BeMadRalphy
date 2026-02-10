@@ -60,7 +60,7 @@ src/
 │   └── post.ts             # Phase 8: Code review, docs, deploy
 │
 ├── planning/               # Planning utilities
-│   └── validate.ts         # BMAD output validation + retry logic
+│   └── validate.ts         # BMAD output validation
 │
 ├── engines/                # AI engine adapters
 │   ├── types.ts            # Common engine interface
@@ -199,7 +199,7 @@ The swarm detector checks:
 
 ### Beads Writer Queue
 
-All Beads write operations (`bd close`, `bd update`) go through a single-writer queue to prevent JSONL conflicts during parallel execution:
+All Beads write operations (`bd create`, `bd close`, `bd update`) go through a single-writer queue to prevent conflicts during parallel execution:
 
 ```typescript
 class BeadsWriter {
@@ -236,13 +236,12 @@ This enables:
 
 ## BMAD Invocation Strategy
 
-BMAD is designed for interactive IDE use. BeMadRalphy invokes it programmatically:
+BMAD is invoked in a strict non-interactive CLI flow for local reliability:
 
-1. **Prompt injection**: Read BMAD agent/workflow markdown from `_bmad/` and inject as system context
-2. **Planning model override**: Use `--planning-engine` for higher-quality planning model
-3. **Engine dispatch**: Invoke engine CLI with assembled prompt
-4. **Validation**: Check output for required sections; retry with corrections if needed
-5. **Output storage**: Write to `_bmad-output/`
+1. **Tool contract**: Require `bmad` CLI on `PATH`
+2. **Command execution**: Run `bmad install --action quick-update --directory <root> --output-folder _bmad-output --tools none --yes`
+3. **Validation**: Enforce required output artifact checks
+4. **Failure mode**: Fail fast with actionable command error context
 
 This allows BeMadRalphy to work headlessly without an IDE.
 
@@ -284,17 +283,13 @@ Conflicts are deferred or re-routed to avoid race conditions.
 
 ---
 
-## Error Recovery
+## Error Model
 
-| Scenario         | Action                                                   |
-| ---------------- | -------------------------------------------------------- |
-| Task fails       | Retry up to 3 times (configurable)                       |
-| Blocking failure | Mark dependents as `blocked`, continue others            |
-| Build breaks     | Auto mode: attempt fix-build meta-task; Hybrid: escalate |
-| Rate limit       | Exponential backoff; pause and notify if persistent      |
-| Auth failure     | Clear error message with setup instructions              |
+Core phases run in fail-fast mode:
 
-All failures logged to `.bemadralphy/failures.log`.
+- Missing required CLIs stop the run immediately.
+- Command failures surface exact command/cwd/exit context.
+- Planning/sync/execute/verify/post do not silently skip required work.
 
 ---
 

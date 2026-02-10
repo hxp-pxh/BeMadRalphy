@@ -2,7 +2,9 @@ import { createCliAdapter } from './cli-adapter.js';
 
 export const copilotAdapter = createCliAdapter({
   name: 'copilot',
-  commandName: 'copilot',
+  commandName: 'ralphy',
   hasNativeSwarm: false,
-  ralphyFlag: '--copilot',
+  buildArgs: (_task, prompt) => ['--copilot', '--max-iterations', '1', prompt],
+  unavailableHint: 'Install ralphy and ensure it is on PATH.',
+  failureHint: 'Ensure GitHub Copilot integration is configured in ralphy.',
 });

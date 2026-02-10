@@ -1,11 +1,8 @@
 import { logInfo } from '../utils/logging.js';
-import { commandExists, runCommand } from '../utils/exec.js';
+import { assertCommandExists, runCommand } from '../utils/exec.js';
 
 export async function archiveSpecChange(projectRoot: string, changeName?: string): Promise<void> {
-  if (!(await commandExists('openspec'))) {
-    logInfo('specs: openspec CLI not found; skipping archive');
-    return;
-  }
+  await assertCommandExists('openspec', 'Install with: npm install -g @fission-ai/openspec');
 
   const args = ['archive', '-y'];
   if (changeName) {

@@ -21,15 +21,15 @@ Welcome to BeMadRalphy! This guide will help you get set up for local developmen
 
 Before you begin, ensure you have the following installed:
 
-| Tool    | Version | Check command    |
-| ------- | ------- | ---------------- |
-| Node.js | 18+     | `node --version` |
-| npm     | 9+      | `npm --version`  |
-| Git     | 2.30+   | `git --version`  |
-| Ralphy  | latest  | `ralphy --version` |
-| BMAD    | latest  | `bmad --version` |
-| Beads   | latest  | `bd --version`   |
-| OpenSpec | latest | `openspec --version` |
+| Tool     | Version | Check command         |
+| -------- | ------- | --------------------- |
+| Node.js  | 18+     | `node --version`      |
+| npm      | 9+      | `npm --version`       |
+| Git      | 2.30+   | `git --version`       |
+| Ralphy   | latest  | `ralphy --version`    |
+| BMAD     | latest  | `bmad --version`      |
+| Beads    | latest  | `bd --version`        |
+| OpenSpec | latest  | `openspec --version`  |
 
 Install required CLIs:
 
@@ -106,8 +106,8 @@ mkdir ~/test-project && cd ~/test-project
 # Initialize BeMadRalphy
 bemadralphy init
 
-# This creates .bemadralphy/, openspec/, and _bmad-output/, then initializes
-# OpenSpec and Beads when available.
+# This creates .bemadralphy/, openspec/, and _bmad-output/, and fails fast if
+# required CLIs (bd, bmad, openspec) are missing.
 
 # Create an idea file
 echo "A simple todo app with local storage" > idea.md
@@ -116,9 +116,16 @@ echo "A simple todo app with local storage" > idea.md
 bemadralphy run --mode auto --engine ralphy
 ```
 
+### Fail-fast guarantees
+
+- `run` fails if BMAD cannot produce valid planning artifacts.
+- `run` fails if `bd` is unavailable during task sync/execution.
+- `run` fails if selected engine contract is unavailable or misconfigured.
+- `run` fails if OpenSpec validate/archive commands fail.
+
 ---
 
-## Running Tests (planned)
+## Running Tests
 
 ### Run all tests
 
@@ -156,7 +163,7 @@ npm test -- -t "should extract stack decisions"
 
 ## Directory Walkthrough
 
-```
+```text
 BeMadRalphy/
 ├── src/                    # Source code
 │   ├── cli.ts              # CLI entry point
@@ -224,7 +231,7 @@ BeMadRalphy/
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-```
+```text
 feat(intake): add support for YAML front-matter parsing
 fix(beads): prevent race condition in writer queue
 docs: update onboarding guide with test instructions
@@ -304,9 +311,13 @@ npm run build
 Check that the engine CLI is installed and authenticated:
 
 ```bash
-claude --version
-claude auth status
+ralphy --version
+gemini --version   # if using --engine gemini
+kimi --version     # if using --engine kimi
 ```
+
+If a run fails, the error includes the exact command invocation that failed.
+Use that command directly in the project root to reproduce and fix auth/config issues.
 
 ---
 

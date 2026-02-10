@@ -4,7 +4,7 @@ import { runCodexAgentsBatch } from '../swarm/codex-sdk.js';
 import { resolveSwarmMode } from '../swarm/detector.js';
 import { runKimiParlBatch } from '../swarm/kimi-parl.js';
 import { BeadsWriter } from '../beads/writer.js';
-import { runCommand } from '../utils/exec.js';
+import { assertCommandExists, runCommand } from '../utils/exec.js';
 import { logInfo } from '../utils/logging.js';
 import type { PipelineContext } from './types.js';
 
@@ -18,8 +18,7 @@ export async function executePhase(ctx: PipelineContext): Promise<PipelineContex
   const engineName = ctx.engine ?? 'ralphy';
   const adapter = engineAdapters[engineName];
   if (!adapter) {
-    logInfo(`execute: unknown engine "${engineName}"`);
-    return ctx;
+    throw new Error(`execute: unknown engine "${engineName}"`);
   }
 
   const swarmMode = resolveSwarmMode(engineName, ctx.swarm);
@@ -49,14 +48,13 @@ async function runBdReadyLoop(
 ): Promise<void> {
   const available = await adapter.checkAvailable();
   if (!available) {
-    logInfo(`execute: engine "${adapter.name}" not available; skipping`);
-    return;
+    throw new Error(`execute: engine "${adapter.name}" is not available or not configured`);
   }
 
+  await assertCommandExists('bd', 'Install with: npm install -g @beads/bd');
   const writer = new BeadsWriter(ctx.projectRoot);
   if (!(await writer.isAvailable())) {
-    logInfo('execute: Beads CLI not available; skipping');
-    return;
+    throw new Error('execute: Beads CLI (bd) not available');
   }
 
   const { stdout } = await runCommand('bd', ['ready'], ctx.projectRoot);

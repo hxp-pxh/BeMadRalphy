@@ -1,11 +1,16 @@
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { syncPhase } from '../src/phases/sync.js';
 import type { PipelineContext } from '../src/phases/types.js';
+import { resetCommandRunners, setCommandRunners } from '../src/utils/exec.js';
 
 describe('syncPhase', () => {
+  afterEach(() => {
+    resetCommandRunners();
+  });
+
   it('writes tasks.md from stories', async () => {
     const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'bemadralphy-'));
     const storiesDir = path.join(tmpDir, '_bmad-output', 'stories');
@@ -15,6 +20,15 @@ describe('syncPhase', () => {
       `# Epics\n\n### Task A\n\nDetails\n`,
       'utf-8',
     );
+    setCommandRunners({
+      commandExists: async (command) => command === 'bd',
+      runCommand: async (command, args = []) => {
+        if (command === 'bd' && args[0] === 'create') {
+          return { stdout: 'bd-1\n', stderr: '' };
+        }
+        return { stdout: '', stderr: '' };
+      },
+    });
 
     const ctx: PipelineContext = {
       runId: 'test',
@@ -27,5 +41,24 @@ describe('syncPhase', () => {
 
     const tasksMd = await readFile(path.join(tmpDir, 'tasks.md'), 'utf-8');
     expect(tasksMd).toContain('Task A');
+  });
+
+  it('fails fast when bd is unavailable', async () => {
+    const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'bemadralphy-'));
+    const storiesDir = path.join(tmpDir, '_bmad-output', 'stories');
+    await mkdir(storiesDir, { recursive: true });
+    await writeFile(path.join(storiesDir, 'epics.md'), `# Epics\n\n### Task A\n`, 'utf-8');
+    setCommandRunners({
+      commandExists: async () => false,
+    });
+
+    const ctx: PipelineContext = {
+      runId: 'test',
+      mode: 'auto',
+      dryRun: false,
+      projectRoot: tmpDir,
+    };
+
+    await expect(syncPhase(ctx)).rejects.toThrow('Missing required CLI "bd"');
   });
 });

@@ -3,6 +3,8 @@
 This checklist validates the real external CLI boundaries used by the pipeline.
 It is intended for manual local smoke testing and is not required for automated CI.
 
+The product runs in fail-fast mode: missing CLIs or command failures should stop the run.
+
 ## Prerequisites
 
 - Install dependencies: `npm install`
@@ -27,6 +29,7 @@ Expected:
 
 - `.bemadralphy/`, `openspec/`, `_bmad-output/` created
 - starter `idea.md` created if missing
+- no soft-skip warnings for required CLIs
 
 ## 2) Provide a minimal idea and run pipeline
 
@@ -42,6 +45,7 @@ Expected:
 - `_bmad-output/*` files present (BMAD bootstrap + generated planning artifacts)
 - `tasks.md` generated
 - `.bemadralphy/state.yaml` with `phase: post`
+- process exits non-zero if a required CLI/auth step is missing
 
 ## 3) Exercise Beads integration
 
@@ -73,3 +77,13 @@ Expected:
 - Capture final `.bemadralphy/state.yaml`
 - Capture `tasks.md`
 - Note installed CLI versions (`ralphy --version`, `bd --version`, `bmad --version`, `openspec --version`)
+
+## 6) Fail-fast recovery
+
+If the pipeline exits with an error:
+
+1. Run the failing command directly from the error message.
+2. Confirm CLI auth/config for the selected engine.
+3. Re-run:
+   - `npm run verify`
+   - `node /path/to/BMAD-BEADS-RALPHY/dist/cli.js run --mode auto --engine ralphy`

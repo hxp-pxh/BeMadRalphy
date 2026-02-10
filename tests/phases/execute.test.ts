@@ -47,4 +47,40 @@ describe('executePhase', () => {
     expect(commands.map((call) => call.args.join(' '))).toContain('close bd-1');
     expect(commands.map((call) => call.args.join(' '))).toContain('update bd-2 --body bad task');
   });
+
+  it('fails fast for unknown engine', async () => {
+    const ctx: PipelineContext = {
+      runId: 'test',
+      mode: 'auto',
+      dryRun: false,
+      projectRoot: '/tmp/project',
+      engine: 'unknown-engine',
+    };
+
+    await expect(executePhase(ctx)).rejects.toThrow('unknown engine');
+  });
+
+  it('fails fast when selected engine is unavailable', async () => {
+    setCommandRunners({
+      commandExists: async () => false,
+    });
+
+    engineAdapters['test-engine'] = {
+      name: 'test-engine',
+      hasNativeSwarm: false,
+      permissionFlags: [],
+      checkAvailable: async () => false,
+      execute: async () => ({ status: 'success', output: 'ok' }),
+    };
+
+    const ctx: PipelineContext = {
+      runId: 'test',
+      mode: 'auto',
+      dryRun: false,
+      projectRoot: '/tmp/project',
+      engine: 'test-engine',
+    };
+
+    await expect(executePhase(ctx)).rejects.toThrow('not available or not configured');
+  });
 });

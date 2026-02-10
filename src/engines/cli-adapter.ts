@@ -6,7 +6,9 @@ type CliAdapterOptions = {
   commandName: string;
   hasNativeSwarm: boolean;
   permissionFlags?: string[];
-  ralphyFlag?: string;
+  buildArgs: (task: EngineTask, prompt: string) => string[];
+  unavailableHint?: string;
+  failureHint?: string;
 };
 
 function taskPrompt(task: EngineTask): string {
@@ -16,44 +18,32 @@ function taskPrompt(task: EngineTask): string {
 
 export function createCliAdapter(options: CliAdapterOptions): EngineAdapter {
   const permissionFlags = options.permissionFlags ?? [];
-  const hasRalphaFallback = Boolean(options.ralphyFlag);
 
   return {
     name: options.name,
     hasNativeSwarm: options.hasNativeSwarm,
     permissionFlags,
     async checkAvailable(): Promise<boolean> {
-      if (await commandExists(options.commandName)) {
-        return true;
-      }
-      return hasRalphaFallback ? commandExists('ralphy') : false;
+      return commandExists(options.commandName);
     },
     async execute(task, executeOptions): Promise<TaskResult> {
       const cwd = executeOptions.cwd;
       const prompt = taskPrompt(task);
+      const args = options.buildArgs(task, prompt);
 
       if (executeOptions.dryRun) {
         return { status: 'skipped', output: `${options.name} dry run: ${task.id}` };
       }
 
       try {
-        if (await commandExists(options.commandName)) {
-          const result = await runCommand(options.commandName, [prompt], cwd);
-          return { status: 'success', output: result.stdout.trim() };
-        }
-
-        if (hasRalphaFallback && (await commandExists('ralphy'))) {
-          const args = [options.ralphyFlag as string, '--max-iterations', '1', prompt];
-          const result = await runCommand('ralphy', args, cwd);
-          return { status: 'success', output: result.stdout.trim() };
-        }
-
+        const result = await runCommand(options.commandName, args, cwd);
+        return { status: 'success', output: result.stdout.trim() || result.stderr.trim() };
+      } catch (error) {
+        const hint = options.failureHint ?? options.unavailableHint;
         return {
           status: 'failed',
-          error: `engine "${options.name}" unavailable: install ${options.commandName} or ralphy`,
+          error: `engine "${options.name}" failed: ${(error as Error).message}${hint ? ` (${hint})` : ''}`,
         };
-      } catch (error) {
-        return { status: 'failed', error: (error as Error).message };
       }
     },
   };

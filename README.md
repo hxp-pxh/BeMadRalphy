@@ -17,7 +17,7 @@ Current implementation includes:
 - Steering file generation (AGENTS.md, CLAUDE.md, Cursor/Windsurf/Cline/Kiro rules)
 - `tasks.md` generation plus Beads sync (`bd init`, `bd create`, `bd ready`, `bd close`, `bd update`)
 - Per-phase state persistence in `.bemadralphy/state.yaml`
-- Engine execution through CLI-backed adapters (direct engine CLI or Ralphy fallback when configured)
+- Engine execution through explicit CLI contracts for all supported engines
 - OpenSpec lifecycle integration (`openspec init`, `openspec validate`, `openspec archive`)
 
 ---
@@ -108,19 +108,17 @@ flowchart TD
 
 ---
 
-## Planned AI Engine Support
+## AI Engine Support
 
-| Engine                 | Native Swarm      | Notes                       |
-| ---------------------- | ----------------- | --------------------------- |
-| Claude Code (Opus 4.6) | Yes (Agent Teams) | Lead agent spawns teammates |
-| Kimi K2.5              | Yes (PARL)        | Up to 100 sub-agents        |
-| OpenAI Codex           | Yes (Agents SDK)  | File reservations           |
-| Cursor                 | No                | Process-level parallelism   |
-| OpenCode               | No                | Process-level parallelism   |
-| Qwen                   | No                | Process-level parallelism   |
-| Droid                  | No                | Process-level parallelism   |
-| GitHub Copilot         | No                | Process-level parallelism   |
-| Gemini                 | No                | Process-level parallelism   |
+- `claude` (native swarm): `ralphy --claude --max-iterations 1 <task>`
+- `kimi` (native swarm): `kimi <task>`
+- `codex` (native swarm): `ralphy --codex --max-iterations 1 <task>`
+- `cursor`: `ralphy --cursor --max-iterations 1 <task>`
+- `opencode`: `ralphy --opencode --max-iterations 1 <task>`
+- `qwen`: `ralphy --qwen --max-iterations 1 <task>`
+- `copilot`: `ralphy --copilot --max-iterations 1 <task>`
+- `gemini`: `gemini <task>`
+- `ralphy`: `ralphy --max-iterations 1 <task>`
 
 ---
 
@@ -142,8 +140,8 @@ npx bemadralphy init
 
 # Notes:
 # - Creates .bemadralphy/, openspec/, and _bmad-output/
-# - Attempts `bd init` if Beads is installed
-# - Warns if BMAD CLI is missing
+# - Initializes `bd` and `openspec`
+# - Fails fast if required CLIs are missing
 
 # Run the full pipeline
 npx bemadralphy run
@@ -346,9 +344,34 @@ node dist/cli.js --help
 - Beads CLI (`bd`)
 - OpenSpec CLI (`openspec`)
 
+## Fail-Fast Behavior
+
+`init` and `run` are strict by design for local-product reliability:
+
+- Missing required CLIs fail immediately with actionable errors.
+- Planning fails if BMAD command fails or required artifacts are missing.
+- Sync fails if stories cannot be parsed or Beads writes fail.
+- Execute fails for unknown/unavailable engines.
+- Verify/Post fail if OpenSpec commands fail.
+
+Typical recovery flow:
+
+```bash
+# 1) Verify toolchain
+ralphy --version && bmad --version && bd --version && openspec --version
+
+# 2) Re-run setup and checks
+npm install
+npm run verify
+node dist/cli.js init
+
+# 3) Run pipeline
+node dist/cli.js run --mode auto --engine ralphy
+```
+
 ---
 
-## Quick Start (planned)
+## Quick Start
 
 ```bash
 # 1. Create a new directory

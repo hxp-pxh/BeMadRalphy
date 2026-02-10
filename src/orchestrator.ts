@@ -16,7 +16,7 @@ import {
 } from './phases/index.js';
 import { loadState, saveState } from './state.js';
 import { generateSpecs } from './specs/index.js';
-import { commandExists, runCommand } from './utils/exec.js';
+import { assertCommandExists, runCommand } from './utils/exec.js';
 import { logInfo } from './utils/logging.js';
 
 export type RunOptions = {
@@ -64,24 +64,13 @@ export async function runInit(projectRoot: string = process.cwd()): Promise<void
     logInfo('init: created starter idea.md');
   }
 
-  const hasBeads = await commandExists('bd');
-  if (hasBeads) {
-    await runCommand('bd', ['init'], projectRoot);
-    logInfo('init: Beads initialized');
-  } else {
-    logInfo('init: Beads CLI (bd) not found. Install from https://github.com/beads-ai/beads');
-  }
+  await assertCommandExists('bd', 'Install from https://github.com/steveyegge/beads.');
+  await assertCommandExists('bmad', 'Install with: npm install -g bmad-method');
+  await assertCommandExists('openspec', 'Install with: npm install -g @fission-ai/openspec');
 
-  const hasBmad = await commandExists('bmad');
-  if (!hasBmad) {
-    logInfo('init: BMAD CLI not found. Install BMAD-METHOD before planning.');
-  }
-
-  try {
-    await generateSpecs(projectRoot);
-  } catch (error) {
-    logInfo(`init: openspec initialization skipped (${(error as Error).message})`);
-  }
+  await runCommand('bd', ['init'], projectRoot);
+  logInfo('init: Beads initialized');
+  await generateSpecs(projectRoot);
 
   logInfo('init: completed scaffold of .bemadralphy, openspec/, and _bmad-output/');
 }
