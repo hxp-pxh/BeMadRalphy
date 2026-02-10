@@ -364,7 +364,7 @@ Example `bemad.config.js`:
 ```js
 export default {
   mode: 'hybrid',
-  engine: 'ralphy',
+  engine: 'claude',
   output: 'json',
 };
 ```

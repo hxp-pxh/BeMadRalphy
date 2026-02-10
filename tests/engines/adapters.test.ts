@@ -30,7 +30,6 @@ describe('engine adapters', () => {
     await expect(engineAdapters.copilot.checkAvailable()).resolves.toBe(true);
     await expect(engineAdapters.opencode.checkAvailable()).resolves.toBe(true);
     await expect(engineAdapters.qwen.checkAvailable()).resolves.toBe(true);
-    await expect(engineAdapters.ralphy.checkAvailable()).resolves.toBe(true);
     await expect(engineAdapters.gemini.checkAvailable()).resolves.toBe(true);
     await expect(engineAdapters.kimi.checkAvailable()).resolves.toBe(true);
     await expect(engineAdapters.ollama.checkAvailable()).resolves.toBe(true);
@@ -41,7 +40,6 @@ describe('engine adapters', () => {
     await engineAdapters.copilot.execute(task, { cwd: '/tmp/project' });
     await engineAdapters.opencode.execute(task, { cwd: '/tmp/project' });
     await engineAdapters.qwen.execute(task, { cwd: '/tmp/project' });
-    await engineAdapters.ralphy.execute(task, { cwd: '/tmp/project' });
     await engineAdapters.gemini.execute(task, { cwd: '/tmp/project' });
     await engineAdapters.kimi.execute(task, { cwd: '/tmp/project' });
     await engineAdapters.ollama.execute(task, { cwd: '/tmp/project' });
