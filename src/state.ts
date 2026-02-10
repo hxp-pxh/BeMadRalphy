@@ -6,6 +6,8 @@ export type PipelineState = {
   phase: string;
   mode: 'auto' | 'hybrid' | 'supervised';
   engine?: string;
+  executionProfile?: 'safe' | 'balanced' | 'fast';
+  audienceProfile?: 'solo-dev' | 'agency-team' | 'product-team' | 'enterprise-team';
   lastGate?: string;
   tasksCompleted?: number;
   tasksTotal?: number;

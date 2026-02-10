@@ -73,6 +73,21 @@ EOF
 node /path/to/BMAD-BEADS-RALPHY/dist/cli.js run --mode auto --engine ralphy
 ```
 
+Recommended first-run guardrails:
+
+```bash
+node /path/to/BMAD-BEADS-RALPHY/dist/cli.js run \
+  --engine ralphy \
+  --execution-profile safe \
+  --audience-profile product-team
+```
+
+Execution profiles:
+
+- `safe`: single-lane defaults for lowest coordination complexity
+- `balanced` (default): moderate parallelism for normal use
+- `fast`: maximum requested concurrency for speed-focused runs
+
 ## Expected Outputs Checklist
 
 After a successful run, verify:

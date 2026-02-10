@@ -2,6 +2,8 @@
 
 **Be**(ads) + (B)**Mad** + **Ralphy** + [OpenSpec](https://github.com/Fission-AI/OpenSpec) — four tools, one pipeline, zero gaps. **CLI-only.**
 
+BeMadRalphy is a product-delivery operating system for AI-assisted teams: methodology first, code generation second.
+
 > End-to-end automated coding: idea in → planning → task graph → swarm-aware execution → living specs → deployment.
 
 [![npm version](https://img.shields.io/npm/v/bemadralphy.svg)](https://www.npmjs.com/package/bemadralphy)
@@ -42,6 +44,14 @@ BeMadRalphy is a CLI orchestrator that merges:
 - **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** — Living specifications and delta-based change tracking
 
 Into a single, seamless pipeline that takes you from a rough idea to a deployed, documented, and tested codebase — with minimal human intervention.
+
+### Positioning and ICP
+
+- Primary ICP: product teams of 2-10 engineers shipping continuously
+- Secondary ICPs: solo builders and agencies operating repeatable delivery workflows
+- Differentiation: not "write code faster," but "ship products systematically" via BMAD-driven intent-to-delivery
+
+For full positioning rationale and risk mitigation strategy, see [`docs/positioning.md`](docs/positioning.md).
 
 ---
 
@@ -158,6 +168,9 @@ npx bemadralphy run
 
 # Run with specific options
 npx bemadralphy run --mode auto --engine claude --max-parallel 5 --budget 50
+
+# Run with execution/audience profiles
+npx bemadralphy run --execution-profile safe --audience-profile product-team
 
 # Explore before planning (optional)
 npx bemadralphy explore "How should I structure authentication?"
@@ -303,10 +316,18 @@ cost_usd: 3.47
 | `--engine <name>`                 | AI engine to use                        |
 | `--planning-engine <name>`        | Override engine for planning phase only |
 | `--max-parallel N`                | Max parallel tasks (default: 3)         |
+| `--execution-profile <profile>`   | Guardrails profile: `safe\|balanced\|fast` |
+| `--audience-profile <profile>`    | ICP profile: `solo-dev\|agency-team\|product-team\|enterprise-team` |
 | `--budget N`                      | Cost cap in USD                         |
 | `--brownfield`                    | Force brownfield mode                   |
 | `--swarm native\|process\|off`    | Override swarm detection                |
 | `--create-pr`                     | Create PRs for each task                |
+
+### Execution profiles
+
+- `safe`: single-lane execution defaults, process-mode bias, lowest coordination risk
+- `balanced` (default): controlled concurrency for day-to-day product work
+- `fast`: maximum requested concurrency for throughput-focused runs
 
 ---
 

@@ -2,7 +2,7 @@ import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parse, stringify } from 'yaml';
 import { logInfo } from '../utils/logging.js';
-import type { IntakeData, PipelineContext } from './types.js';
+import type { AudienceProfile, IntakeData, PipelineContext } from './types.js';
 
 export async function intakePhase(ctx: PipelineContext): Promise<PipelineContext> {
   logInfo('Phase 1 (intake): read idea.md and generate intake.yaml');
@@ -18,9 +18,11 @@ export async function intakePhase(ctx: PipelineContext): Promise<PipelineContext
 
   const fileContents = await readFile(sourceFile, 'utf-8');
   const { frontmatter, body } = parseFrontmatter(fileContents);
+  const normalizedDecisions = normalizeIntakeDecisions(frontmatter, ctx.audienceProfile);
+  const audienceProfile = normalizedDecisions.audience_profile as AudienceProfile;
   const intakeData: IntakeData = {
     sourceFile: path.basename(sourceFile),
-    frontmatter,
+    frontmatter: normalizedDecisions,
     body,
     createdAt: new Date().toISOString(),
   };
@@ -32,14 +34,14 @@ export async function intakePhase(ctx: PipelineContext): Promise<PipelineContext
   const intakeYaml = stringify({
     source_file: intakeData.sourceFile,
     created_at: intakeData.createdAt,
-    decisions: intakeData.frontmatter,
+    decisions: normalizedDecisions,
     idea: intakeData.body.trim(),
   });
 
   await writeFile(intakePath, intakeYaml, 'utf-8');
 
   logInfo(`intake written to ${intakePath}`);
-  return { ...ctx, intakePath, intake: intakeData };
+  return { ...ctx, intakePath, intake: intakeData, audienceProfile };
 }
 
 async function resolveIdeaFile(ideaPath: string, planPath: string): Promise<string | null> {
@@ -79,4 +81,70 @@ function parseFrontmatter(contents: string): {
   const body = lines.slice(endIndex + 1).join('\n');
   const parsed = (parse(rawFrontmatter) ?? {}) as Record<string, unknown>;
   return { frontmatter: parsed, body };
+}
+
+function normalizeIntakeDecisions(
+  frontmatter: Record<string, unknown>,
+  existingAudienceProfile?: AudienceProfile,
+): Record<string, unknown> {
+  const audienceProfile = existingAudienceProfile ?? inferAudienceProfile(frontmatter) ?? 'product-team';
+  return {
+    ...frontmatter,
+    audience_profile: audienceProfile,
+    team_size: normalizeTeamSize(frontmatter['team_size']),
+    delivery_velocity: normalizeDeliveryVelocity(frontmatter['delivery_velocity']),
+  };
+}
+
+function inferAudienceProfile(frontmatter: Record<string, unknown>): AudienceProfile | undefined {
+  const candidates = [
+    frontmatter['audience_profile'],
+    frontmatter['audience'],
+    frontmatter['icp'],
+    frontmatter['target_audience'],
+  ];
+  for (const candidate of candidates) {
+    const normalized = normalizeAudienceProfile(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+  return undefined;
+}
+
+function normalizeAudienceProfile(value: unknown): AudienceProfile | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const lowered = value.trim().toLowerCase();
+  if (['solo', 'solo-dev', 'indie', 'freelancer'].includes(lowered)) {
+    return 'solo-dev';
+  }
+  if (['agency', 'agency-team', 'consultancy'].includes(lowered)) {
+    return 'agency-team';
+  }
+  if (['enterprise', 'enterprise-team', 'large-team'].includes(lowered)) {
+    return 'enterprise-team';
+  }
+  if (['product-team', 'product', 'startup', 'team'].includes(lowered)) {
+    return 'product-team';
+  }
+  return undefined;
+}
+
+function normalizeTeamSize(value: unknown): string {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(Math.max(1, Math.floor(value)));
+  }
+  if (typeof value === 'string' && value.trim().length > 0) {
+    return value.trim();
+  }
+  return '2-10';
+}
+
+function normalizeDeliveryVelocity(value: unknown): string {
+  if (typeof value === 'string' && value.trim().length > 0) {
+    return value.trim();
+  }
+  return '1-3 features/week';
 }

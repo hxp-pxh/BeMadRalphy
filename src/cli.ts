@@ -23,6 +23,15 @@ program
   .option('--engine <name>', 'AI engine to use')
   .option('--planning-engine <name>', 'Override engine for planning phase only')
   .option('--max-parallel <n>', 'Max parallel tasks', (v) => Number(v), 3)
+  .option(
+    '--execution-profile <profile>',
+    'Execution guardrails profile: safe|balanced|fast',
+    'balanced',
+  )
+  .option(
+    '--audience-profile <profile>',
+    'Target audience profile: solo-dev|agency-team|product-team|enterprise-team',
+  )
   .option('--budget <usd>', 'Cost cap in USD', (v) => Number(v))
   .option('--brownfield', 'Force brownfield mode', false)
   .option('--swarm <mode>', 'Override swarm detection: native|process|off')

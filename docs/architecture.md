@@ -194,8 +194,15 @@ The swarm detector checks:
 
 1. Which engine is selected
 2. Whether the engine supports native swarm
-3. Whether the required CLI/API version is available
+3. Execution profile (`safe|balanced|fast`)
 4. User override flags (`--swarm native|process|off`)
+5. Whether the required CLI/API version is available
+
+Precedence order:
+
+1. Explicit `--swarm` override
+2. Execution profile policy
+3. Engine native capability
 
 ### Beads Writer Queue
 
@@ -267,6 +274,12 @@ bd ready → Spawn N processes in git worktrees → Each pulls tasks → Auto-me
 
 Default N=3, configurable via `--max-parallel`.
 
+Execution profile guardrails apply before runtime:
+
+- `safe`: force conservative single-lane (`maxParallel=1`) and process preference
+- `balanced`: cap parallelism to 2 for lower merge/conflict risk
+- `fast`: honor requested parallelism
+
 ### File Locking
 
 Swarm sub-agents must reserve files before editing:
@@ -302,6 +315,11 @@ Core phases run in fail-fast mode:
 | `.bemadralphy/failures.log` | Error logs                             |
 | `intake.yaml`               | Processed intake decisions             |
 | `tasks.md`                  | Human-readable task list (regenerated) |
+
+State includes execution and audience metadata for resumability and observability:
+
+- `executionProfile`: `safe|balanced|fast`
+- `audienceProfile`: `solo-dev|agency-team|product-team|enterprise-team`
 
 ---
 

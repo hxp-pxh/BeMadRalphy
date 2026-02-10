@@ -6,5 +6,10 @@ export { postPhase } from './post.js';
 export { scaffoldPhase } from './scaffold.js';
 export { steeringPhase } from './steering.js';
 export { syncPhase } from './sync.js';
-export type { PipelineContext, PipelineMode } from './types.js';
+export type {
+  AudienceProfile,
+  ExecutionProfile,
+  PipelineContext,
+  PipelineMode,
+} from './types.js';
 export { verifyPhase } from './verify.js';

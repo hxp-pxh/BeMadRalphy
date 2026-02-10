@@ -12,6 +12,8 @@ import {
     syncPhase,
     verifyPhase,
     type PipelineContext,
+    type AudienceProfile,
+    type ExecutionProfile,
     type PipelineMode,
 } from './phases/index.js';
 import { loadState, saveState } from './state.js';
@@ -24,6 +26,8 @@ export type RunOptions = {
   engine?: string;
   planningEngine?: string;
   maxParallel: number;
+  executionProfile?: ExecutionProfile;
+  audienceProfile?: AudienceProfile;
   budget?: number;
   brownfield: boolean;
   swarm?: 'native' | 'process' | 'off';
@@ -77,6 +81,8 @@ export async function runInit(projectRoot: string = process.cwd()): Promise<void
 
 export async function runPipeline(options: RunOptions): Promise<void> {
   const projectRoot = options.projectRoot ?? process.cwd();
+  const executionProfile = normalizeExecutionProfile(options.executionProfile);
+  const audienceProfile = normalizeAudienceProfile(options.audienceProfile);
   const context: PipelineContext = {
     runId: new Date().toISOString(),
     mode: options.mode,
@@ -85,6 +91,8 @@ export async function runPipeline(options: RunOptions): Promise<void> {
     engine: options.engine,
     planningEngine: options.planningEngine,
     maxParallel: options.maxParallel,
+    executionProfile,
+    audienceProfile,
     budget: options.budget,
     brownfield: options.brownfield,
     swarm: options.swarm,
@@ -143,6 +151,27 @@ function stateFrom(ctx: PipelineContext, phase: string) {
     phase,
     mode: ctx.mode,
     engine: ctx.engine,
+    executionProfile: ctx.executionProfile,
+    audienceProfile: ctx.audienceProfile,
     startedAt: ctx.runId,
   };
+}
+
+function normalizeExecutionProfile(value: string | undefined): ExecutionProfile {
+  if (value === 'safe' || value === 'balanced' || value === 'fast') {
+    return value;
+  }
+  return 'balanced';
+}
+
+function normalizeAudienceProfile(value: string | undefined): AudienceProfile | undefined {
+  if (
+    value === 'solo-dev' ||
+    value === 'agency-team' ||
+    value === 'product-team' ||
+    value === 'enterprise-team'
+  ) {
+    return value;
+  }
+  return undefined;
 }

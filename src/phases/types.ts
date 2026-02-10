@@ -1,4 +1,6 @@
 export type PipelineMode = 'auto' | 'hybrid' | 'supervised';
+export type ExecutionProfile = 'safe' | 'balanced' | 'fast';
+export type AudienceProfile = 'solo-dev' | 'agency-team' | 'product-team' | 'enterprise-team';
 
 export type IntakeData = {
   sourceFile: string;
@@ -17,6 +19,8 @@ export type PipelineContext = {
   engine?: string;
   planningEngine?: string;
   maxParallel?: number;
+  executionProfile?: ExecutionProfile;
+  audienceProfile?: AudienceProfile;
   budget?: number;
   brownfield?: boolean;
   swarm?: 'native' | 'process' | 'off';

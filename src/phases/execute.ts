@@ -1,7 +1,7 @@
 import { engineAdapters } from '../engines/index.js';
 import { runClaudeTeamsBatch } from '../swarm/claude-teams.js';
 import { runCodexAgentsBatch } from '../swarm/codex-sdk.js';
-import { resolveSwarmMode } from '../swarm/detector.js';
+import { resolveExecutionPolicy } from '../swarm/detector.js';
 import { runKimiParlBatch } from '../swarm/kimi-parl.js';
 import { BeadsWriter } from '../beads/writer.js';
 import { assertCommandExists, runCommand } from '../utils/exec.js';
@@ -21,20 +21,25 @@ export async function executePhase(ctx: PipelineContext): Promise<PipelineContex
     throw new Error(`execute: unknown engine "${engineName}"`);
   }
 
-  const swarmMode = resolveSwarmMode(engineName, ctx.swarm);
-  logInfo(`execute: engine=${engineName} swarm=${swarmMode}`);
+  const policy = resolveExecutionPolicy(engineName, ctx.executionProfile ?? 'balanced', {
+    swarmOverride: ctx.swarm,
+    requestedParallel: ctx.maxParallel,
+  });
+  logInfo(
+    `execute: engine=${engineName} profile=${policy.profile} swarm=${policy.swarmMode} maxParallel=${policy.maxParallel}`,
+  );
 
-  if (swarmMode === 'native') {
+  if (policy.swarmMode === 'native') {
     if (engineName === 'claude') {
-      await runClaudeTeamsBatch(ctx.projectRoot, ctx.maxParallel ?? 3);
+      await runClaudeTeamsBatch(ctx.projectRoot, policy.maxParallel);
     } else if (engineName === 'kimi') {
-      await runKimiParlBatch(ctx.projectRoot, ctx.maxParallel ?? 3);
+      await runKimiParlBatch(ctx.projectRoot, policy.maxParallel);
     } else if (engineName === 'codex') {
-      await runCodexAgentsBatch(ctx.projectRoot, ctx.maxParallel ?? 3);
+      await runCodexAgentsBatch(ctx.projectRoot, policy.maxParallel);
     } else {
       await runBdReadyLoop(ctx, adapter);
     }
-  } else if (swarmMode === 'process') {
+  } else if (policy.swarmMode === 'process') {
     await runBdReadyLoop(ctx, adapter);
   } else {
     await runBdReadyLoop(ctx, adapter);

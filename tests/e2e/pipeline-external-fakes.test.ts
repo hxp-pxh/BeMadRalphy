@@ -89,6 +89,8 @@ describe.sequential('pipeline with fake external CLIs', () => {
     await runPipeline({
       mode: 'auto',
       maxParallel: 1,
+      executionProfile: 'safe',
+      audienceProfile: 'agency-team',
       brownfield: false,
       createPr: true,
       dryRun: false,
@@ -105,6 +107,8 @@ describe.sequential('pipeline with fake external CLIs', () => {
 
     const stateYaml = await readFile(path.join(tmpDir, '.bemadralphy', 'state.yaml'), 'utf-8');
     expect(stateYaml).toContain('phase: post');
+    expect(stateYaml).toContain('executionProfile: safe');
+    expect(stateYaml).toContain('audienceProfile: agency-team');
 
     const cliLog = await readFile(fakeLogPath, 'utf-8');
     expect(cliLog).toContain('bmad install');
