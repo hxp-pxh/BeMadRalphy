@@ -128,9 +128,28 @@ export async function runInit(projectRoot: string = process.cwd()): Promise<void
     logInfo('init: created starter idea.md');
   }
 
-  const hasBd = await commandExists('bd');
-  const hasBmad = await commandExists('bmad');
-  const hasOpenSpec = await commandExists('openspec');
+  const hasNpm = await commandExists('npm');
+  const hasBd = await ensureDependency({
+    command: 'bd',
+    packageName: '@beads/bd',
+    hasNpm,
+    cwd: projectRoot,
+    installHint: 'Install from https://github.com/steveyegge/beads.',
+  });
+  const hasBmad = await ensureDependency({
+    command: 'bmad',
+    packageName: 'bmad-method',
+    hasNpm,
+    cwd: projectRoot,
+    installHint: 'Install with: npm install -g bmad-method',
+  });
+  const hasOpenSpec = await ensureDependency({
+    command: 'openspec',
+    packageName: '@fission-ai/openspec',
+    hasNpm,
+    cwd: projectRoot,
+    installHint: 'Install with: npm install -g @fission-ai/openspec',
+  });
 
   if (hasBd) {
     await runCommand('bd', ['init'], projectRoot);
@@ -589,4 +608,75 @@ async function checkDependency(
   }
   const installed = await commandExists(name);
   return { name, required, installed, hint: installed ? undefined : hint };
+}
+
+type InitDependency = {
+  command: 'bd' | 'bmad' | 'openspec';
+  packageName: string;
+  hasNpm: boolean;
+  cwd: string;
+  installHint: string;
+};
+
+async function ensureDependency(entry: InitDependency): Promise<boolean> {
+  let installed = await commandExists(entry.command);
+
+  if (!installed) {
+    if (!entry.hasNpm) {
+      logInfo(`init: ${entry.command} not found; ${entry.installHint}`);
+      return false;
+    }
+    try {
+      logInfo(`init: ${entry.command} not found; attempting install (${entry.packageName})`);
+      await runCommand('npm', ['install', '-g', entry.packageName], entry.cwd);
+      installed = await commandExists(entry.command);
+      if (!installed) {
+        logInfo(`init: ${entry.command} install command completed but CLI is still missing on PATH.`);
+        return false;
+      }
+      logInfo(`init: installed ${entry.command} successfully`);
+    } catch (error) {
+      const message = (error as Error).message;
+      logInfo(`init: failed to auto-install ${entry.command}. ${entry.installHint} (${message})`);
+      return false;
+    }
+  }
+
+  if (!entry.hasNpm) {
+    logInfo(`init: npm not found; skipping update check for ${entry.command}`);
+    return true;
+  }
+
+  try {
+    const localVersion = await getCliSemver(entry.command);
+    const latestVersion = await getPackageLatestSemver(entry.packageName);
+    if (localVersion && latestVersion && localVersion !== latestVersion) {
+      logInfo(
+        `init: updating ${entry.command} from ${localVersion} to ${latestVersion} (${entry.packageName})`,
+      );
+      await runCommand('npm', ['install', '-g', `${entry.packageName}@latest`], entry.cwd);
+      return (await commandExists(entry.command)) === true;
+    }
+  } catch (error) {
+    const message = (error as Error).message;
+    logInfo(`init: unable to check updates for ${entry.command}; continuing (${message})`);
+  }
+
+  return true;
+}
+
+async function getCliSemver(command: string): Promise<string | null> {
+  try {
+    const { stdout } = await runCommand(command, ['--version']);
+    const match = stdout.trim().match(/(\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)/);
+    return match?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function getPackageLatestSemver(packageName: string): Promise<string | null> {
+  const { stdout } = await runCommand('npm', ['view', packageName, 'version', '--json']);
+  const parsed = JSON.parse(stdout.trim()) as string | undefined;
+  return typeof parsed === 'string' && parsed.length > 0 ? parsed : null;
 }

@@ -51,6 +51,43 @@ describe.sequential('runInit', () => {
     await access(path.join(tmpDir, 'idea.md'));
     expect(calls).toHaveLength(0);
   });
+
+  it('attempts to auto-install missing required CLIs when npm is available', async () => {
+    const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'bemadralphy-'));
+    const calls: Array<{ command: string; args: string[] }> = [];
+    const available = new Set<string>(['npm']);
+    setCommandRunners({
+      commandExists: async (command) => available.has(command),
+      runCommand: async (command, args = []) => {
+        calls.push({ command, args });
+        if (command === 'npm' && args[0] === 'install' && args[1] === '-g') {
+          const pkg = args[2];
+          if (pkg === '@beads/bd' || pkg === '@beads/bd@latest') {
+            available.add('bd');
+          }
+          if (pkg === 'bmad-method' || pkg === 'bmad-method@latest') {
+            available.add('bmad');
+          }
+          if (pkg === '@fission-ai/openspec' || pkg === '@fission-ai/openspec@latest') {
+            available.add('openspec');
+          }
+        }
+        if (command === 'npm' && args[0] === 'view') {
+          return { stdout: '"1.0.0"\n', stderr: '' };
+        }
+        if (args[0] === '--version') {
+          return { stdout: '1.0.0\n', stderr: '' };
+        }
+        return { stdout: '', stderr: '' };
+      },
+    });
+
+    await runInit(tmpDir);
+
+    expect(calls.some((call) => call.command === 'npm' && call.args[0] === 'install')).toBe(true);
+    expect(calls.some((call) => call.command === 'bd' && call.args[0] === 'init')).toBe(true);
+    expect(calls.some((call) => call.command === 'openspec' && call.args[0] === 'init')).toBe(true);
+  });
 });
 
 describe.sequential('runPipeline', () => {
