@@ -61,4 +61,34 @@ describe('syncPhase', () => {
 
     await expect(syncPhase(ctx)).rejects.toThrow('Missing required CLI "bd"');
   });
+
+  it('is idempotent when bd workspace is already initialized', async () => {
+    const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'bemadralphy-'));
+    const storiesDir = path.join(tmpDir, '_bmad-output', 'stories');
+    await mkdir(storiesDir, { recursive: true });
+    await writeFile(path.join(storiesDir, 'epics.md'), `# Epics\n\n### Task A\n`, 'utf-8');
+    setCommandRunners({
+      commandExists: async (command) => command === 'bd',
+      runCommand: async (command, args = []) => {
+        if (command === 'bd' && args[0] === 'init') {
+          throw new Error('workspace already initialized');
+        }
+        if (command === 'bd' && args[0] === 'create') {
+          return { stdout: 'bd-1\n', stderr: '' };
+        }
+        return { stdout: '', stderr: '' };
+      },
+    });
+
+    const ctx: PipelineContext = {
+      runId: 'test',
+      mode: 'auto',
+      dryRun: false,
+      projectRoot: tmpDir,
+    };
+
+    await expect(syncPhase(ctx)).resolves.toEqual(ctx);
+    const tasksMd = await readFile(path.join(tmpDir, 'tasks.md'), 'utf-8');
+    expect(tasksMd).toContain('Task A');
+  });
 });

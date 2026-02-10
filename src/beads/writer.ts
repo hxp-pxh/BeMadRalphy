@@ -21,7 +21,16 @@ export class BeadsWriter {
         logInfo('BeadsWriter: bd not available; skipping init');
         return;
       }
-      await runCommand('bd', ['init'], this.cwd);
+      try {
+        await runCommand('bd', ['init'], this.cwd);
+      } catch (error) {
+        const message = (error as Error).message.toLowerCase();
+        if (message.includes('already initialized') || message.includes('workspace already initialized')) {
+          logInfo('BeadsWriter: workspace already initialized; continuing');
+          return;
+        }
+        throw error;
+      }
     });
   }
 
