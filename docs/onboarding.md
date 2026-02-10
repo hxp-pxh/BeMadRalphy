@@ -2,7 +2,7 @@
 
 Welcome to BeMadRalphy! This guide will help you get set up for local development.
 
-> **Note:** The repository contains initial scaffolding, but many commands are still placeholders. The commands below are **planned** for when implementation matures.
+> The repository now runs end-to-end with external CLIs. Install all required CLIs before running the pipeline.
 
 ## Table of Contents
 
@@ -26,16 +26,20 @@ Before you begin, ensure you have the following installed:
 | Node.js | 18+     | `node --version` |
 | npm     | 9+      | `npm --version`  |
 | Git     | 2.30+   | `git --version`  |
+| Ralphy  | latest  | `ralphy --version` |
+| BMAD    | latest  | `bmad --version` |
+| Beads   | latest  | `bd --version`   |
+| OpenSpec | latest | `openspec --version` |
 
-Optional (for testing engine integrations):
+Install required CLIs:
 
-- Claude CLI (`claude --version`)
-- Cursor CLI
-- Codex CLI
+```bash
+sudo npm install -g ralphy-cli bmad-method @beads/bd @fission-ai/openspec
+```
 
 ---
 
-## Setup (planned)
+## Setup
 
 ### 1. Clone the repository
 
@@ -73,7 +77,7 @@ bemadralphy --version
 
 ---
 
-## Running Locally (planned)
+## Running Locally
 
 ### Development mode (with watch)
 
@@ -102,14 +106,14 @@ mkdir ~/test-project && cd ~/test-project
 # Initialize BeMadRalphy
 bemadralphy init
 
-# This creates .bemadralphy/, openspec/, and _bmad-output/ and runs `bd init`
-# if the Beads CLI is available.
+# This creates .bemadralphy/, openspec/, and _bmad-output/, then initializes
+# OpenSpec and Beads when available.
 
 # Create an idea file
 echo "A simple todo app with local storage" > idea.md
 
-# Run in dry-run mode (no actual execution)
-bemadralphy run --dry-run
+# Run full pipeline (default engine uses Ralphy adapter)
+bemadralphy run --mode auto --engine ralphy
 ```
 
 ---

@@ -1,15 +1,15 @@
 # BeMadRalphy Architecture
 
-This document describes the **target** architecture of BeMadRalphy, including its internal module structure, data flow, and key design decisions. An initial scaffolding exists, but most modules are still stubs.
+This document describes the architecture of BeMadRalphy, including module structure, data flow, and key design decisions.
 
-Current scaffolding covers:
+Current implementation covers:
 
 - Intake parsing (`idea.md`/`plan.md`) and `.bemadralphy/intake.yaml`
-- Placeholder BMAD outputs under `_bmad-output/`
+- BMAD bootstrap plus generated planning outputs under `_bmad-output/`
 - Steering file generation (AGENTS.md, CLAUDE.md, Cursor/Windsurf/Cline/Kiro rules)
-- `tasks.md` generation and `.beads/issues.jsonl` placeholders
+- `tasks.md` generation and Beads issue lifecycle integration
 - State and cost persistence in `.bemadralphy/`
-- Execution can use `bd ready` when Beads and engine CLIs are available
+- Execution through CLI-backed engine adapters with Ralphy support
 
 ## Overview
 

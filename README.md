@@ -8,16 +8,17 @@
 
 ## Status
 
-BeMadRalphy has an initial TypeScript scaffolding in this repo. The CLI commands are stubbed and not yet functional, and the npm package is not released. The sections below describe the **planned** interface and architecture, with the current scaffolding focused on file generation and placeholders.
+BeMadRalphy runs end-to-end locally with real external CLI integrations.
 
-Current scaffolding includes:
+Current implementation includes:
 
 - `idea.md`/`plan.md` intake with `.bemadralphy/intake.yaml` output
-- Placeholder BMAD outputs under `_bmad-output/`
+- BMAD bootstrap (`bmad install`) and generated planning artifacts under `_bmad-output/`
 - Steering file generation (AGENTS.md, CLAUDE.md, Cursor/Windsurf/Cline/Kiro rules)
-- `tasks.md` generation and `.beads/issues.jsonl` placeholders
+- `tasks.md` generation plus Beads sync (`bd init`, `bd create`, `bd ready`, `bd close`, `bd update`)
 - Per-phase state persistence in `.bemadralphy/state.yaml`
-- Execution phase can run `bd ready` when Beads + engine CLIs are available
+- Engine execution through CLI-backed adapters (direct engine CLI or Ralphy fallback when configured)
+- OpenSpec lifecycle integration (`openspec init`, `openspec validate`, `openspec archive`)
 
 ---
 
@@ -133,9 +134,7 @@ flowchart TD
 
 ---
 
-## CLI Commands (planned)
-
-The following commands represent the intended CLI interface. Current implementations are placeholders and may only create placeholder outputs.
+## CLI Commands
 
 ```bash
 # Initialize a new project
@@ -303,25 +302,49 @@ cost_usd: 3.47
 
 ---
 
-## Installation (planned)
+## Installation
 
-The CLI is not published to npm yet. These commands represent the intended install flow.
+### Install required external CLIs
 
 ```bash
-# Run directly with npx
-npx bemadralphy init
+# Ralphy
+sudo npm install -g ralphy-cli
 
-# Or install globally
-npm install -g bemadralphy
-bemadralphy init
+# BMAD
+sudo npm install -g bmad-method
+
+# Beads
+sudo npm install -g @beads/bd
+
+# OpenSpec
+sudo npm install -g @fission-ai/openspec
+```
+
+Verify:
+
+```bash
+ralphy --version
+bmad --version
+bd --version
+openspec --version
+```
+
+### Install BeMadRalphy dependencies
+
+```bash
+npm install
+npm run build
+node dist/cli.js --help
 ```
 
 ### Prerequisites
 
 - Node.js 18+ or Bun 1.0+
 - Git
-- At least one supported AI engine CLI installed (e.g., `claude`, `cursor`, `codex`)
-- Beads CLI (`bd`) — installed automatically by `bemadralphy init`
+- Ralphy CLI (`ralphy`) for execution fallback and parallel orchestration
+- BMAD CLI (`bmad`)
+- Beads CLI (`bd`)
+- OpenSpec CLI (`openspec`)
 
 ---
 
