@@ -2,7 +2,7 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 COPY tsconfig.json ./
 COPY src/ ./src/
 RUN npm run build
@@ -13,7 +13,7 @@ WORKDIR /app
 
 # Install runtime dependencies only
 COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm install --omit=dev && npm cache clean --force
 
 # Copy built files
 COPY --from=builder /app/dist ./dist
