@@ -28,6 +28,14 @@ export type PipelineContext = {
   swarm?: 'native' | 'process' | 'off';
   createPr?: boolean;
   output?: OutputFormat;
+  model?: string;
+  timeout?: number;
+  templates?: {
+    productBrief?: string;
+    prd?: string;
+    architecture?: string;
+    stories?: string;
+  };
   resume?: boolean;
   fromPhase?: string;
 };

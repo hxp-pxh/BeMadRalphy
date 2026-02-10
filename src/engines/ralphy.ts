@@ -1,10 +1,7 @@
-import { createCliAdapter } from './cli-adapter.js';
+import { claudeAdapter } from './claude.js';
 
-export const ralphyAdapter = createCliAdapter({
+// Backward-compatible alias: "ralphy" now delegates to Claude by default.
+export const ralphyAdapter = {
+  ...claudeAdapter,
   name: 'ralphy',
-  commandName: 'ralphy',
-  hasNativeSwarm: false,
-  buildArgs: (_task, prompt) => ['--max-iterations', '1', prompt],
-  unavailableHint: 'Install ralphy and ensure it is on PATH.',
-  failureHint: 'Ensure ralphy is initialized and authenticated.',
-});
+};

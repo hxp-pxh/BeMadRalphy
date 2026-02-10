@@ -23,6 +23,7 @@ Secondary ICPs:
 BeMadRalphy differentiates through:
 
 - End-to-end flow ownership: intake, planning, execution, verification, and post-delivery
+- Single-install operator experience: `npm install -g bemadralphy` with no parent-CLI dependency chain
 - BMAD-first design: product and architecture intent are first-class inputs
 - Toolchain interoperability: works with multiple engines instead of locking to one model vendor
 - Living specs and task memory: keeps decisions and outcomes connected over time

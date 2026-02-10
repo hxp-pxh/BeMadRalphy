@@ -4,7 +4,8 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { syncPhase } from '../src/phases/sync.js';
 import type { PipelineContext } from '../src/phases/types.js';
-import { resetCommandRunners, setCommandRunners } from '../src/utils/exec.js';
+import { TaskManager } from '../src/tasks/index.js';
+import { resetCommandRunners } from '../src/utils/exec.js';
 
 describe('syncPhase', () => {
   afterEach(() => {
@@ -20,16 +21,6 @@ describe('syncPhase', () => {
       `# Epics\n\n### Task A\n\nDetails\n`,
       'utf-8',
     );
-    setCommandRunners({
-      commandExists: async (command) => command === 'bd',
-      runCommand: async (command, args = []) => {
-        if (command === 'bd' && args[0] === 'create') {
-          return { stdout: 'bd-1\n', stderr: '' };
-        }
-        return { stdout: '', stderr: '' };
-      },
-    });
-
     const ctx: PipelineContext = {
       runId: 'test',
       mode: 'auto',
@@ -41,16 +32,15 @@ describe('syncPhase', () => {
 
     const tasksMd = await readFile(path.join(tmpDir, 'tasks.md'), 'utf-8');
     expect(tasksMd).toContain('Task A');
+    const manager = await TaskManager.create(tmpDir);
+    expect(manager.getAll()).toHaveLength(1);
   });
 
-  it('fails fast when bd is unavailable', async () => {
+  it('fails fast when no stories are parsed', async () => {
     const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'bemadralphy-'));
     const storiesDir = path.join(tmpDir, '_bmad-output', 'stories');
     await mkdir(storiesDir, { recursive: true });
-    await writeFile(path.join(storiesDir, 'epics.md'), `# Epics\n\n### Task A\n`, 'utf-8');
-    setCommandRunners({
-      commandExists: async () => false,
-    });
+    await writeFile(path.join(storiesDir, 'epics.md'), `# Epics\n\nNo stories here\n`, 'utf-8');
 
     const ctx: PipelineContext = {
       runId: 'test',
@@ -59,27 +49,14 @@ describe('syncPhase', () => {
       projectRoot: tmpDir,
     };
 
-    await expect(syncPhase(ctx)).rejects.toThrow('Missing required CLI "bd"');
+    await expect(syncPhase(ctx)).rejects.toThrow('no tasks parsed');
   });
 
-  it('is idempotent when bd workspace is already initialized', async () => {
+  it('is idempotent with internal task manager', async () => {
     const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'bemadralphy-'));
     const storiesDir = path.join(tmpDir, '_bmad-output', 'stories');
     await mkdir(storiesDir, { recursive: true });
     await writeFile(path.join(storiesDir, 'epics.md'), `# Epics\n\n### Task A\n`, 'utf-8');
-    setCommandRunners({
-      commandExists: async (command) => command === 'bd',
-      runCommand: async (command, args = []) => {
-        if (command === 'bd' && args[0] === 'init') {
-          throw new Error('workspace already initialized');
-        }
-        if (command === 'bd' && args[0] === 'create') {
-          return { stdout: 'bd-1\n', stderr: '' };
-        }
-        return { stdout: '', stderr: '' };
-      },
-    });
-
     const ctx: PipelineContext = {
       runId: 'test',
       mode: 'auto',
@@ -87,6 +64,7 @@ describe('syncPhase', () => {
       projectRoot: tmpDir,
     };
 
+    await expect(syncPhase(ctx)).resolves.toEqual(ctx);
     await expect(syncPhase(ctx)).resolves.toEqual(ctx);
     const tasksMd = await readFile(path.join(tmpDir, 'tasks.md'), 'utf-8');
     expect(tasksMd).toContain('Task A');

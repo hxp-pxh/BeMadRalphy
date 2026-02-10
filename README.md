@@ -1,6 +1,8 @@
 # BeMadRalphy
 
-**Be**(ads) + (B)**Mad** + **Ralphy** + [OpenSpec](https://github.com/Fission-AI/OpenSpec) — four tools, one pipeline, zero gaps. **CLI-only.**
+<!-- markdownlint-disable MD060 MD032 -->
+
+**Be**(ads) + (B)**Mad** + **Ralphy** + [OpenSpec](https://github.com/Fission-AI/OpenSpec) + [Superpowers](https://github.com/obra/superpowers) — five parents, one self-contained CLI.
 
 BeMadRalphy is a product-delivery operating system for AI-assisted teams: methodology first, code generation second.
 
@@ -12,17 +14,16 @@ BeMadRalphy is a product-delivery operating system for AI-assisted teams: method
 
 ## Status
 
-BeMadRalphy runs end-to-end locally with real external CLI integrations.
+BeMadRalphy v2 is a self-contained CLI: planning, task management, specs, and execution orchestration run internally.
 
 Current implementation includes:
 
 - `idea.md`/`plan.md` intake with `.bemadralphy/intake.yaml` output
-- BMAD bootstrap (`bmad install`) and generated planning artifacts under `_bmad-output/`
-- Steering file generation (AGENTS.md, CLAUDE.md, Cursor/Windsurf/Cline/Kiro rules)
-- `tasks.md` generation plus Beads sync (`bd init`, `bd create`, `bd ready`, `bd close`, `bd update`)
-- Per-phase state persistence in `.bemadralphy/state.yaml`
-- Engine execution through explicit CLI contracts for all supported engines
-- OpenSpec lifecycle integration (`openspec init`, `openspec validate`, `openspec archive`)
+- Direct AI planning pipeline (product brief -> PRD -> architecture -> stories) with fallback generation
+- Embedded SQLite task manager in `.bemadralphy/tasks.db` with dependency-aware ready queue
+- Internal spec lifecycle (`openspec/` scaffold, validation, archive) without external OpenSpec CLI
+- Superpowers-inspired execution methodology (TDD guardrails, two-stage review, verification-before-completion)
+- Per-phase state persistence in `.bemadralphy/state.yaml` plus run history and cost tracking
 
 ---
 
@@ -36,12 +37,13 @@ Current implementation includes:
 
 ## What is BeMadRalphy?
 
-BeMadRalphy is a CLI orchestrator that merges:
+BeMadRalphy is a self-contained CLI agent that absorbs:
 
-- **[BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD)** — Agile AI-driven planning (product briefs, PRDs, architecture, epics & stories)
-- **[Beads](https://github.com/steveyegge/beads)** — Git-backed graph issue tracker and persistent AI memory
-- **[Ralphy](https://github.com/michaelshimeles/ralphy)** — Autonomous AI coding loop with multi-engine support ([site](https://ralphy.goshen.fyi/))
-- **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** — Living specifications and delta-based change tracking
+- **[BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD)** — planning prompts and workflow patterns
+- **[Beads](https://github.com/steveyegge/beads)** — task schema and dependency-ready logic
+- **[Ralphy](https://github.com/michaelshimeles/ralphy)** — execution orchestration and retry patterns
+- **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** — spec templates and validation/archive model
+- **[Superpowers](https://github.com/obra/superpowers)** — subagent workflow methodology and review guardrails
 
 Into a single, seamless pipeline that takes you from a rough idea to a deployed, documented, and tested codebase — with minimal human intervention.
 
@@ -118,11 +120,11 @@ flowchart TD
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | **0. Explore**        | Optional. Investigate codebase (brownfield) or problem domain (greenfield) before committing to a plan.                |
 | **1. Idea Intake**    | Read `idea.md`, detect greenfield vs brownfield, classify project type, ask remaining questions, output `intake.yaml`. |
-| **2. Planning**       | Greenfield: product brief → PRD → architecture → stories. Brownfield: proposal → spec deltas → design → tasks.         |
+| **2. Planning**       | Direct AI calls generate product brief -> PRD -> architecture -> stories using embedded templates.                        |
 | **3. Agent Steering** | Generate 14+ steering files for every IDE/agent (Cursor, Claude, Copilot, Windsurf, Cline, Kiro, etc.).                |
 | **4. Scaffolding**    | `git init`, monorepo structure, `package.json`, `.gitignore`, `.env`, test/lint/CI configs.                            |
-| **5. Task Sync**      | Convert stories to Beads issues (`bd create`, `bd dep add`). Generate `tasks.md`. Cost estimate.                       |
-| **6. Execution**      | Swarm-aware Beads-driven loop. Native swarm for Claude/Kimi/Codex; process-level parallelism for others.               |
+| **5. Task Sync**      | Convert stories to internal SQLite tasks (`.bemadralphy/tasks.db`) and generate `tasks.md`.                             |
+| **6. Execution**      | Swarm-aware execution using internal ready queue, retry logic, and optional two-stage review loops.                     |
 | **7. Verification**   | Semantic check: completeness, correctness, coherence. Fix-up tasks fed back to Beads if needed.                        |
 | **8. Post-Execution** | Code review, full docs suite, living specs, deployment, release management, final summary.                             |
 
@@ -130,16 +132,16 @@ flowchart TD
 
 ## AI Engine Support
 
-- `claude` (native swarm): `ralphy --claude --max-iterations 1 <task>`
-- `kimi` (native swarm): `kimi <task>`
-- `codex` (native swarm): `ralphy --codex --max-iterations 1 <task>`
-- `cursor`: `ralphy --cursor --max-iterations 1 <task>`
-- `opencode`: `ralphy --opencode --max-iterations 1 <task>`
-- `qwen`: `ralphy --qwen --max-iterations 1 <task>`
-- `copilot`: `ralphy --copilot --max-iterations 1 <task>`
-- `gemini`: `gemini <task>`
-- `ollama`: `ollama run <model> <task>` (default model via `OLLAMA_MODEL` or `llama3.2`)
-- `ralphy`: `ralphy --max-iterations 1 <task>`
+- `claude` (native swarm)
+- `kimi` (native swarm)
+- `codex` (native swarm)
+- `cursor`
+- `opencode`
+- `qwen`
+- `copilot`
+- `gemini`
+
+Planning model selection is independent and can use Anthropic/OpenAI/Ollama via direct API integration.
 
 ---
 

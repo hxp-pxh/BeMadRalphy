@@ -1,5 +1,4 @@
-import { access, chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
-import os from 'node:os';
+import { access, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { CostTracker } from './cost.js';
 import { estimateRunCost } from './cost.js';
@@ -23,7 +22,8 @@ import {
 } from './phases/index.js';
 import { loadState, saveState } from './state.js';
 import { generateSpecs } from './specs/index.js';
-import { commandExists, runCommand } from './utils/exec.js';
+import { TaskManager } from './tasks/index.js';
+import { commandExists } from './utils/exec.js';
 import {
   configureLogger,
   logError,
@@ -47,8 +47,17 @@ export type RunOptions = {
   dryRun?: boolean;
   resume?: boolean;
   fromPhase?: PipelinePhaseName;
+  toPhase?: PipelinePhaseName;
   output?: OutputFormat;
   plugins?: string[];
+  model?: string;
+  timeout?: number;
+  templates?: {
+    productBrief?: string;
+    prd?: string;
+    architecture?: string;
+    stories?: string;
+  };
   projectRoot?: string;
 };
 
@@ -66,8 +75,17 @@ type RequiredRunOptions = {
   dryRun: boolean;
   resume: boolean;
   fromPhase?: PipelinePhaseName;
+  toPhase?: PipelinePhaseName;
   output: OutputFormat;
   plugins: string[];
+  model?: string;
+  timeout?: number;
+  templates?: {
+    productBrief?: string;
+    prd?: string;
+    architecture?: string;
+    stories?: string;
+  };
   projectRoot: string;
 };
 
@@ -129,73 +147,10 @@ export async function runInit(projectRoot: string = process.cwd()): Promise<void
     logInfo('init: created starter idea.md');
   }
 
-  const hasNpm = await commandExists('npm');
-  const hasBd = await ensureDependency({
-    command: 'bd',
-    packageName: '@beads/bd',
-    hasNpm,
-    cwd: projectRoot,
-    installHint: 'Install from https://github.com/steveyegge/beads.',
-  });
-  const hasBmad = await ensureDependency({
-    command: 'bmad',
-    packageName: 'bmad-method',
-    hasNpm,
-    cwd: projectRoot,
-    installHint: 'Install with: npm install -g bmad-method',
-  });
-  const hasOpenSpec = await ensureDependency({
-    command: 'openspec',
-    packageName: '@fission-ai/openspec',
-    hasNpm,
-    cwd: projectRoot,
-    installHint: 'Install with: npm install -g @fission-ai/openspec',
-  });
-  const hasRalphy = await ensureDependency({
-    command: 'ralphy',
-    packageName: 'ralphy-cli',
-    hasNpm,
-    cwd: projectRoot,
-    installHint: 'Install with: npm install -g ralphy-cli',
-  });
-
-  if (hasBd) {
-    await runCommand('bd', ['init'], projectRoot);
-    logInfo('init: Beads initialized');
-  } else {
-    logInfo('init: bd not found; skipped Beads init. Install from https://github.com/steveyegge/beads.');
-  }
-
-  if (hasOpenSpec) {
-    await generateSpecs(projectRoot);
-  } else {
-    logInfo('init: openspec not found; skipped OpenSpec init. Install with: npm install -g @fission-ai/openspec');
-  }
-
-  if (!hasBmad) {
-    logInfo('init: bmad not found; planning phase will fail until installed (npm install -g bmad-method).');
-  }
-  if (!hasRalphy) {
-    logInfo('init: ralphy not found; default execution engine may fail until installed (npm install -g ralphy-cli).');
-  }
-
-  const missingRequired = ['bd', 'bmad', 'openspec', 'ralphy'].filter((cli) => {
-    if (cli === 'bd') {
-      return !hasBd;
-    }
-    if (cli === 'bmad') {
-      return !hasBmad;
-    }
-    if (cli === 'openspec') {
-      return !hasOpenSpec;
-    }
-    return !hasRalphy;
-  });
-  if (missingRequired.length > 0) {
-    logInfo(`init: partial setup complete. Missing CLIs: ${missingRequired.join(', ')}`);
-  } else {
-    logInfo('init: completed scaffold of .bemadralphy, openspec/, and _bmad-output/');
-  }
+  await TaskManager.create(projectRoot);
+  await generateSpecs(projectRoot);
+  logInfo('init: initialized internal TaskManager + OpenSpec scaffold');
+  logInfo('init: completed scaffold of .bemadralphy, openspec/, and _bmad-output/');
 }
 
 export async function runPipeline(options: RunOptions): Promise<void> {
@@ -206,7 +161,7 @@ export async function runPipeline(options: RunOptions): Promise<void> {
   configureLogger({ outputFormat: normalized.output, runId });
   logProgress('run', 'start', 'run started', {
     mode: normalized.mode,
-    engine: normalized.engine ?? 'ralphy',
+    engine: normalized.engine ?? 'claude',
     output: normalized.output,
   });
 
@@ -218,6 +173,14 @@ export async function runPipeline(options: RunOptions): Promise<void> {
   if (startIndex < 0) {
     throw new Error(`run: unknown start phase "${startPhase}"`);
   }
+  const endPhase = normalized.toPhase;
+  const endIndex = endPhase ? PHASES.findIndex((phase) => phase.name === endPhase) : PHASES.length - 1;
+  if (endIndex < 0) {
+    throw new Error(`run: unknown end phase "${endPhase}"`);
+  }
+  if (endIndex < startIndex) {
+    throw new Error(`run: end phase "${endPhase}" is before start phase "${startPhase}"`);
+  }
 
   if (typeof normalized.budget === 'number' && estimate.minUsd > normalized.budget) {
     throw new Error(
@@ -225,7 +188,7 @@ export async function runPipeline(options: RunOptions): Promise<void> {
     );
   }
 
-  const plannedPhases = PHASES.slice(startIndex).map((phase) => phase.name);
+  const plannedPhases = PHASES.slice(startIndex, endIndex + 1).map((phase) => phase.name);
   if (normalized.dryRun) {
     logSummary({
       dryRun: true,
@@ -279,13 +242,16 @@ export async function runPipeline(options: RunOptions): Promise<void> {
     swarm: normalized.swarm,
     createPr: normalized.createPr,
     output: normalized.output,
+    model: normalized.model,
+    timeout: normalized.timeout,
+    templates: normalized.templates,
     resume: normalized.resume,
     fromPhase: normalized.fromPhase,
   };
   const cost = new CostTracker();
   let ctx = context;
 
-  for (const phase of PHASES.slice(startIndex)) {
+  for (const phase of PHASES.slice(startIndex, endIndex + 1)) {
     try {
       logProgress('phase', 'start', `${phase.name} phase started`, { phase: phase.name });
       await runPhaseHooks(pluginRuntime.beforeHooks, phase.name, ctx);
@@ -332,7 +298,7 @@ export async function runPipeline(options: RunOptions): Promise<void> {
   }
 
   await cost.persist(ctx.projectRoot);
-  await saveState(ctx.projectRoot, stateFrom(ctx, 'post', 'completed'));
+  await saveState(ctx.projectRoot, stateFrom(ctx, PHASES[endIndex]?.name ?? 'post', 'completed'));
   await appendRunHistory(ctx.projectRoot, {
     runId,
     startedAt: runId,
@@ -341,7 +307,7 @@ export async function runPipeline(options: RunOptions): Promise<void> {
     mode: ctx.mode,
     engine: ctx.engine,
     output: ctx.output,
-    phase: 'post',
+    phase: PHASES[endIndex]?.name ?? 'post',
     options: {
       mode: normalized.mode,
       engine: normalized.engine,
@@ -359,7 +325,7 @@ export async function runPipeline(options: RunOptions): Promise<void> {
   logSummary({
     runId: ctx.runId,
     status: 'completed',
-    phase: 'post',
+    phase: PHASES[endIndex]?.name ?? 'post',
     estimatedUsd: estimate.estimatedUsd,
     taskCount: estimate.taskCount,
   });
@@ -426,15 +392,68 @@ export async function runReplay(runId: string, options: Partial<RunOptions> = {}
   await runPipeline(replayOptions);
 }
 
+export async function runPlanOnly(options: Partial<RunOptions> = {}): Promise<void> {
+  await runPipeline({
+    ...options,
+    fromPhase: 'intake',
+    toPhase: 'steering',
+  });
+}
+
+export async function runExecuteOnly(options: Partial<RunOptions> = {}): Promise<void> {
+  await runPipeline({
+    ...options,
+    fromPhase: 'sync',
+    toPhase: 'execute',
+  });
+}
+
+export async function runResume(options: Partial<RunOptions> = {}): Promise<void> {
+  await runPipeline({
+    ...options,
+    resume: true,
+    fromPhase: options.fromPhase,
+  });
+}
+
 export async function runDoctor(output: OutputFormat = 'text'): Promise<void> {
   configureLogger({ outputFormat: output });
+  const hasApiKey = Boolean(process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY);
+  let sqliteOk = true;
+  try {
+    await TaskManager.create(process.cwd());
+  } catch {
+    sqliteOk = false;
+  }
+  const hasCodingAgent =
+    (await commandExists('claude')) ||
+    (await commandExists('codex')) ||
+    (await commandExists('cursor')) ||
+    (await commandExists('opencode')) ||
+    (await commandExists('qwen'));
   const checks = await Promise.all([
     checkDependency('node', true, `found ${process.version}`),
     checkDependency('npm', true, 'required for npm-based install/update flows'),
-    checkDependency('bd', true, 'Install from https://github.com/steveyegge/beads.'),
-    checkDependency('bmad', true, 'Install with: npm install -g bmad-method'),
-    checkDependency('openspec', true, 'Install with: npm install -g @fission-ai/openspec'),
-    checkDependency('ralphy', false, 'Install with: npm install -g ralphy-cli'),
+    Promise.resolve({
+      name: 'ai_api_keys',
+      required: true,
+      installed: hasApiKey,
+      hint: hasApiKey ? undefined : 'Set ANTHROPIC_API_KEY or OPENAI_API_KEY.',
+    }),
+    Promise.resolve({
+      name: 'sqlite',
+      required: true,
+      installed: sqliteOk,
+      hint: sqliteOk ? undefined : 'Could not initialize .bemadralphy/tasks.db.',
+    }),
+    Promise.resolve({
+      name: 'coding_agent_cli',
+      required: true,
+      installed: hasCodingAgent,
+      hint: hasCodingAgent
+        ? undefined
+        : 'Install at least one coding agent CLI (claude, codex, cursor, opencode, qwen).',
+    }),
     checkDependency('gh', false, 'Install GitHub CLI from https://cli.github.com/'),
     checkDependency('ollama', false, 'Install from https://ollama.com/download for local models.'),
   ]);
@@ -455,7 +474,7 @@ export async function runDoctor(output: OutputFormat = 'text'): Promise<void> {
   }
   if (missingRequired.length > 0) {
     logInfo(
-      `doctor: missing required CLIs (${missingRequired.map((entry) => entry.name).join(', ')}). Install them before running full pipeline.`,
+      `doctor: missing required dependencies (${missingRequired.map((entry) => entry.name).join(', ')}).`,
     );
     return;
   }
@@ -468,6 +487,7 @@ function stateFrom(
   status: 'running' | 'failed' | 'completed',
   lastError?: string,
 ) {
+  const now = new Date().toISOString();
   const phaseIndex = PHASES.findIndex((entry) => entry.name === phase);
   const nextPhase = phaseIndex >= 0 ? PHASES[phaseIndex + 1]?.name : undefined;
   const resumeFromPhase =
@@ -484,9 +504,16 @@ function stateFrom(
     executionProfile: ctx.executionProfile,
     audienceProfile: ctx.audienceProfile,
     startedAt: ctx.runId,
-    updatedAt: new Date().toISOString(),
-    finishedAt: status === 'completed' ? new Date().toISOString() : undefined,
+    updatedAt: now,
+    finishedAt: status === 'completed' ? now : undefined,
     runId: ctx.runId,
+    checkpoints: [{ phase, timestamp: now }],
+    artifactPaths: {
+      brief: '_bmad-output/product-brief.md',
+      prd: '_bmad-output/prd.md',
+      architecture: '_bmad-output/architecture.md',
+      stories: '_bmad-output/stories/epics.md',
+    },
   };
 }
 
@@ -495,7 +522,7 @@ async function resolveRunOptions(options: RunOptions): Promise<RequiredRunOption
   const config = await loadRunConfig(projectRoot);
   return {
     mode: normalizeMode(options.mode ?? config.mode),
-    engine: options.engine ?? config.engine,
+    engine: options.engine ?? config.engine ?? config.agent,
     planningEngine: options.planningEngine ?? config.planningEngine,
     maxParallel: normalizeMaxParallel(options.maxParallel ?? config.maxParallel),
     executionProfile: normalizeExecutionProfile(options.executionProfile ?? config.executionProfile),
@@ -507,8 +534,12 @@ async function resolveRunOptions(options: RunOptions): Promise<RequiredRunOption
     dryRun: options.dryRun ?? false,
     resume: options.resume ?? false,
     fromPhase: options.fromPhase,
+    toPhase: options.toPhase,
     output: normalizeOutput(options.output ?? config.output),
     plugins: normalizePlugins(options.plugins ?? config.plugins),
+    model: options.model ?? config.model,
+    timeout: options.timeout ?? config.timeout,
+    templates: options.templates ?? config.templates,
     projectRoot,
   };
 }
@@ -624,145 +655,3 @@ async function checkDependency(
   return { name, required, installed, hint: installed ? undefined : hint };
 }
 
-type InitDependency = {
-  command: 'bd' | 'bmad' | 'openspec' | 'ralphy';
-  packageName: string;
-  hasNpm: boolean;
-  cwd: string;
-  installHint: string;
-};
-
-async function ensureDependency(entry: InitDependency): Promise<boolean> {
-  let installed = await commandExists(entry.command);
-
-  if (!installed) {
-    if (entry.hasNpm && (await isGlobalNpmPackageInstalled(entry.packageName, entry.cwd))) {
-      installed = await ensureCommandShimFromGlobalPackage(entry);
-      if (installed) {
-        logInfo(`init: recovered ${entry.command} from npm global install via local shim`);
-      }
-    }
-  }
-
-  if (!installed) {
-    if (!entry.hasNpm) {
-      logInfo(`init: ${entry.command} not found; ${entry.installHint}`);
-      return false;
-    }
-    try {
-      logInfo(`init: ${entry.command} not found; attempting install (${entry.packageName})`);
-      await runCommand('npm', ['install', '-g', entry.packageName], entry.cwd);
-      installed = await ensureCommandShimFromGlobalPackage(entry);
-      if (!installed) {
-        logInfo(`init: ${entry.command} install command completed but CLI is still missing on PATH.`);
-        return false;
-      }
-      logInfo(`init: installed ${entry.command} successfully`);
-    } catch (error) {
-      const message = (error as Error).message;
-      logInfo(`init: failed to auto-install ${entry.command}. ${entry.installHint} (${message})`);
-      return false;
-    }
-  }
-
-  if (!entry.hasNpm) {
-    logInfo(`init: npm not found; skipping update check for ${entry.command}`);
-    return true;
-  }
-
-  try {
-    const localVersion = await getCliSemver(entry.command);
-    const latestVersion = await getPackageLatestSemver(entry.packageName);
-    if (localVersion && latestVersion && localVersion !== latestVersion) {
-      logInfo(
-        `init: updating ${entry.command} from ${localVersion} to ${latestVersion} (${entry.packageName})`,
-      );
-      await runCommand('npm', ['install', '-g', `${entry.packageName}@latest`], entry.cwd);
-      return (await commandExists(entry.command)) === true;
-    }
-  } catch (error) {
-    const message = (error as Error).message;
-    logInfo(`init: unable to check updates for ${entry.command}; continuing (${message})`);
-  }
-
-  return true;
-}
-
-async function getCliSemver(command: string): Promise<string | null> {
-  try {
-    const { stdout } = await runCommand(command, ['--version']);
-    const match = stdout.trim().match(/(\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)/);
-    return match?.[1] ?? null;
-  } catch {
-    return null;
-  }
-}
-
-async function getPackageLatestSemver(packageName: string): Promise<string | null> {
-  const { stdout } = await runCommand('npm', ['view', packageName, 'version', '--json']);
-  const parsed = JSON.parse(stdout.trim()) as string | undefined;
-  return typeof parsed === 'string' && parsed.length > 0 ? parsed : null;
-}
-
-async function isGlobalNpmPackageInstalled(packageName: string, cwd: string): Promise<boolean> {
-  try {
-    const { stdout } = await runCommand('npm', ['ls', '-g', packageName, '--depth=0', '--json'], cwd);
-    const parsed = JSON.parse(stdout) as { dependencies?: Record<string, unknown> };
-    return Boolean(parsed.dependencies?.[packageName]);
-  } catch {
-    return false;
-  }
-}
-
-async function ensureCommandShimFromGlobalPackage(entry: InitDependency): Promise<boolean> {
-  if (await commandExists(entry.command)) {
-    return true;
-  }
-  const scriptPath = await resolveGlobalPackageCommandPath(entry.packageName, entry.command, entry.cwd);
-  if (!scriptPath) {
-    return false;
-  }
-  const shimDir = path.join(os.homedir(), '.local', 'bin');
-  const shimPath = path.join(shimDir, entry.command);
-  await mkdir(shimDir, { recursive: true });
-  await writeFile(
-    shimPath,
-    `#!/bin/bash\nexec node "${scriptPath.replace(/"/g, '\\"')}" "$@"\n`,
-    'utf-8',
-  );
-  await chmod(shimPath, 0o755);
-  return (await commandExists(entry.command)) || process.env.PATH?.split(':').includes(shimDir) === true;
-}
-
-async function resolveGlobalPackageCommandPath(
-  packageName: string,
-  command: string,
-  cwd: string,
-): Promise<string | null> {
-  try {
-    const { stdout } = await runCommand('npm', ['root', '-g'], cwd);
-    const root = stdout.trim();
-    if (!root) {
-      return null;
-    }
-    const packageDir = path.join(root, packageName);
-    const packageJsonPath = path.join(packageDir, 'package.json');
-    const packageJsonRaw = await readFile(packageJsonPath, 'utf-8');
-    const packageJson = JSON.parse(packageJsonRaw) as { bin?: string | Record<string, string> };
-    const bin = packageJson.bin;
-    let relativeBinPath: string | undefined;
-    if (typeof bin === 'string') {
-      relativeBinPath = bin;
-    } else if (bin && typeof bin === 'object') {
-      relativeBinPath = bin[command] ?? Object.values(bin).find((value) => typeof value === 'string');
-    }
-    if (!relativeBinPath) {
-      return null;
-    }
-    const fullPath = path.join(packageDir, relativeBinPath);
-    await access(fullPath);
-    return fullPath;
-  } catch {
-    return null;
-  }
-}

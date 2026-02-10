@@ -29,6 +29,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet
 
+## [2.0.0] - 2026-02-10
+
+### Added
+
+- Direct AI provider layer (Anthropic, OpenAI, Ollama) for planning
+- Embedded prompt template system for brief/PRD/architecture/stories
+- Internal SQLite task manager at `.bemadralphy/tasks.db`
+- Internal spec validation and archive flow without OpenSpec CLI shelling
+- Retry helper with exponential backoff and error classification
+- New CLI commands: `plan`, `execute`, `resume`, `tasks list/show/retry`, `config set`
+- Superpowers-inspired execution templates and steering guardrails
+- ADR-004 through ADR-007 documenting v2 architecture decisions
+
+### Changed
+
+- Planning phase now uses direct AI generation instead of `bmad` shell invocation
+- Sync/execute phases now use internal task manager instead of `bd` commands
+- Doctor checks now validate API keys + internal dependencies instead of parent CLIs
+- Init now scaffolds internal state/spec/task infrastructure without auto-installing parent CLIs
+- Default engine fallback changed from `ralphy` to `claude`
+
+### Removed
+
+- Runtime dependency on external `bmad` CLI
+- Runtime dependency on external `bd` CLI
+- Runtime dependency on external `openspec` CLI
+- Parent-CLI auto-install and shim bootstrap logic in init
+
 ## [0.1.0] - 2026-02-09
 
 ### Added

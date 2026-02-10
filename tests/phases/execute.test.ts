@@ -1,7 +1,11 @@
+import { mkdtemp } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { engineAdapters } from '../../src/engines/index.js';
 import { executePhase } from '../../src/phases/execute.js';
 import type { PipelineContext } from '../../src/phases/types.js';
+import { TaskManager } from '../../src/tasks/index.js';
 import { resetCommandRunners, setCommandRunners } from '../../src/utils/exec.js';
 
 describe('executePhase', () => {
@@ -11,17 +15,10 @@ describe('executePhase', () => {
   });
 
   it('closes successful tasks and updates failed tasks', async () => {
-    const commands: Array<{ command: string; args: string[] }> = [];
-    setCommandRunners({
-      commandExists: async (command) => command === 'bd',
-      runCommand: async (command, args = []) => {
-        commands.push({ command, args });
-        if (command === 'bd' && args[0] === 'ready') {
-          return { stdout: 'bd-1\nbd-2\n', stderr: '' };
-        }
-        return { stdout: '', stderr: '' };
-      },
-    });
+    const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'bemadralphy-exec-'));
+    const manager = await TaskManager.create(tmpDir);
+    const first = manager.create({ storyId: 's1', title: 'Task A', description: 'A', status: 'open' });
+    const second = manager.create({ storyId: 's2', title: 'Task B', description: 'B', status: 'open' });
 
     engineAdapters['test-engine'] = {
       name: 'test-engine',
@@ -29,7 +26,7 @@ describe('executePhase', () => {
       permissionFlags: [],
       checkAvailable: async () => true,
       execute: async (task) =>
-        task.id === 'bd-1'
+        task.id === first.id
           ? { status: 'success', output: 'ok' }
           : { status: 'failed', error: 'bad task' },
     };
@@ -38,14 +35,40 @@ describe('executePhase', () => {
       runId: 'test',
       mode: 'auto',
       dryRun: false,
-      projectRoot: '/tmp/project',
+      projectRoot: tmpDir,
       engine: 'test-engine',
     };
 
     await executePhase(ctx);
 
-    expect(commands.map((call) => call.args.join(' '))).toContain('close bd-1');
-    expect(commands.map((call) => call.args.join(' '))).toContain('update bd-2 --body bad task');
+    expect(manager.get(first.id)?.status).toBe('done');
+    expect(manager.get(second.id)?.status).toBe('failed');
+  });
+
+  it('runs the execute loop over ready tasks', async () => {
+    const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'bemadralphy-exec-'));
+    const manager = await TaskManager.create(tmpDir);
+    const task = manager.create({ storyId: 's1', title: 'Task A', description: 'A', status: 'open' });
+
+    engineAdapters['test-engine'] = {
+      name: 'test-engine',
+      hasNativeSwarm: false,
+      permissionFlags: [],
+      checkAvailable: async () => true,
+      execute: async () => ({ status: 'success', output: 'ok' }),
+    };
+
+    const ctx: PipelineContext = {
+      runId: 'test',
+      mode: 'auto',
+      dryRun: false,
+      projectRoot: tmpDir,
+      engine: 'test-engine',
+    };
+
+    await executePhase(ctx);
+
+    expect(manager.get(task.id)?.status).toBe('done');
   });
 
   it('fails fast for unknown engine', async () => {

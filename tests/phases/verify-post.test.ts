@@ -10,7 +10,7 @@ function baseCtx(): PipelineContext {
     mode: 'auto',
     dryRun: false,
     projectRoot: '/tmp/project',
-    engine: 'ralphy',
+    engine: 'claude',
   };
 }
 
@@ -19,16 +19,13 @@ describe('verify/post fail-fast behavior', () => {
     resetCommandRunners();
   });
 
-  it('verify fails when openspec is missing', async () => {
-    setCommandRunners({
-      commandExists: async () => false,
-    });
-    await expect(verifyPhase(baseCtx())).rejects.toThrow('Missing required CLI "openspec"');
+  it('verify succeeds with internal spec validator', async () => {
+    await expect(verifyPhase(baseCtx())).resolves.toEqual(baseCtx());
   });
 
   it('post fails when gh is missing while createPr is enabled', async () => {
     setCommandRunners({
-      commandExists: async (command) => command !== 'gh' && command === 'openspec',
+      commandExists: async (command) => command !== 'gh',
       runCommand: async () => ({ stdout: '', stderr: '' }),
     });
 

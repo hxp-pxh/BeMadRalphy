@@ -1,8 +1,15 @@
+import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { logInfo } from '../utils/logging.js';
-import { assertCommandExists, runCommand } from '../utils/exec.js';
 
 export async function generateSpecs(projectRoot: string): Promise<void> {
-  await assertCommandExists('openspec', 'Install with: npm install -g @fission-ai/openspec');
-  await runCommand('openspec', ['init', projectRoot, '--tools', 'none'], projectRoot);
-  logInfo('specs: openspec initialized');
+  const root = path.join(projectRoot, 'openspec');
+  await mkdir(path.join(root, 'specs'), { recursive: true });
+  await mkdir(path.join(root, 'changes', 'archive'), { recursive: true });
+  await writeFile(
+    path.join(root, 'config.yaml'),
+    ['schema: spec-driven', 'version: 1', 'generatedBy: bemadralphy'].join('\n'),
+    'utf-8',
+  );
+  logInfo('specs: internal openspec scaffold initialized');
 }

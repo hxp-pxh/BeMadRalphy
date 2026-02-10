@@ -3,8 +3,9 @@ import { runClaudeTeamsBatch } from '../swarm/claude-teams.js';
 import { runCodexAgentsBatch } from '../swarm/codex-sdk.js';
 import { resolveExecutionPolicy } from '../swarm/detector.js';
 import { runKimiParlBatch } from '../swarm/kimi-parl.js';
-import { BeadsWriter } from '../beads/writer.js';
-import { assertCommandExists, runCommand } from '../utils/exec.js';
+import { createAIProvider } from '../ai/index.js';
+import { TaskManager } from '../tasks/index.js';
+import { withRetry } from '../execution/retry.js';
 import { logInfo, logProgress } from '../utils/logging.js';
 import type { PipelineContext } from './types.js';
 
@@ -17,7 +18,7 @@ export async function executePhase(ctx: PipelineContext): Promise<PipelineContex
     return ctx;
   }
 
-  const engineName = ctx.engine ?? 'ralphy';
+  const engineName = ctx.engine ?? 'claude';
   const adapter = engineAdapters[engineName];
   if (!adapter) {
     throw new Error(`execute: unknown engine "${engineName}"`);
@@ -39,18 +40,18 @@ export async function executePhase(ctx: PipelineContext): Promise<PipelineContex
     } else if (engineName === 'codex') {
       await runCodexAgentsBatch(ctx.projectRoot, policy.maxParallel);
     } else {
-      await runBdReadyLoop(ctx, adapter);
+      await runReadyTaskLoop(ctx, adapter);
     }
   } else if (policy.swarmMode === 'process') {
-    await runBdReadyLoop(ctx, adapter);
+    await runReadyTaskLoop(ctx, adapter);
   } else {
-    await runBdReadyLoop(ctx, adapter);
+    await runReadyTaskLoop(ctx, adapter);
   }
   logProgress('phase', 'done', 'execute phase completed');
   return ctx;
 }
 
-async function runBdReadyLoop(
+async function runReadyTaskLoop(
   ctx: PipelineContext,
   adapter: (typeof engineAdapters)[string],
 ): Promise<void> {
@@ -59,36 +60,44 @@ async function runBdReadyLoop(
     throw new Error(`execute: engine "${adapter.name}" is not available or not configured`);
   }
 
-  await assertCommandExists('bd', 'Install with: npm install -g @beads/bd');
-  const writer = new BeadsWriter(ctx.projectRoot);
-  if (!(await writer.isAvailable())) {
-    throw new Error('execute: Beads CLI (bd) not available');
-  }
-
-  const { stdout } = await runCommand('bd', ['ready'], ctx.projectRoot);
-  const ids = parseBeadsReady(stdout);
-  if (ids.length === 0) {
+  const manager = await TaskManager.create(ctx.projectRoot);
+  const reviewer = ctx.mode === 'auto' ? null : createAIProvider(ctx.model);
+  const readyTasks = manager.getReady();
+  if (readyTasks.length === 0) {
     logInfo('execute: no ready tasks');
     return;
   }
 
   let completedCount = 0;
-  for (const id of ids) {
-    logProgress('task', 'start', `execute: task ${id} started`, { taskId: id });
-    const result = await adapter.execute({ id, title: id }, { cwd: ctx.projectRoot, dryRun: ctx.dryRun });
+  for (const task of readyTasks) {
+    logProgress('task', 'start', `execute: task ${task.id} started`, { taskId: task.id });
+    manager.update(task.id, { status: 'in_progress' });
+    const result = await withRetry(
+      () =>
+        adapter.execute(
+          { id: task.id, title: task.title, description: task.description },
+          { cwd: ctx.projectRoot, dryRun: ctx.dryRun },
+        ),
+      {
+        maxRetries: ctx.timeout ? Math.max(1, Math.min(5, Math.floor(ctx.timeout / 60))) : 3,
+      },
+    );
     if (result.status === 'success') {
-      await writer.close(id);
-      logProgress('task', 'done', `execute: task ${id} completed`, { taskId: id });
+      if (reviewer) {
+        await runTwoStageReview(reviewer, task, result.output ?? '');
+      }
+      manager.update(task.id, { status: 'done', output: result.output });
+      logProgress('task', 'done', `execute: task ${task.id} completed`, { taskId: task.id });
     } else if (result.status === 'failed') {
-      await writer.update(id, result.error ?? 'task failed');
-      logProgress('task', 'failed', `execute: task ${id} failed`, {
-        taskId: id,
+      manager.update(task.id, { status: 'failed', error: result.error ?? 'task failed' });
+      logProgress('task', 'failed', `execute: task ${task.id} failed`, {
+        taskId: task.id,
         error: result.error ?? 'task failed',
       });
     } else {
-      await writer.update(id, result.output ?? 'task skipped');
-      logInfo(`execute: task ${id} skipped`);
-      logProgress('task', 'progress', `execute: task ${id} skipped`, { taskId: id });
+      manager.update(task.id, { status: 'open', output: result.output ?? 'task skipped' });
+      logInfo(`execute: task ${task.id} skipped`);
+      logProgress('task', 'progress', `execute: task ${task.id} skipped`, { taskId: task.id });
     }
 
     completedCount += 1;
@@ -103,7 +112,33 @@ async function runBdReadyLoop(
   }
 }
 
-function parseBeadsReady(output: string): string[] {
-  const matches = output.match(/bd-[a-zA-Z0-9-]+/g);
-  return matches ? Array.from(new Set(matches)) : [];
+async function runTwoStageReview(
+  reviewer: ReturnType<typeof createAIProvider>,
+  task: { id: string; title: string; description: string },
+  output: string,
+): Promise<void> {
+  const specPrompt = [
+    'You are doing spec compliance review.',
+    'The implementer may be optimistic. Verify independently.',
+    `Task: ${task.id} - ${task.title}`,
+    `Description: ${task.description}`,
+    `Output:\n${output}`,
+    'Return PASS or FAIL and a one-sentence reason.',
+  ].join('\n\n');
+  const specResult = await reviewer.complete(specPrompt);
+  if (!specResult.toLowerCase().includes('pass')) {
+    throw new Error(`execute: spec compliance review failed for ${task.id}: ${specResult}`);
+  }
+
+  const qualityPrompt = [
+    'You are doing code quality review.',
+    'Assess correctness, error handling, type safety, and test quality.',
+    `Task: ${task.id} - ${task.title}`,
+    `Output:\n${output}`,
+    'Return PASS or FAIL and a one-sentence reason.',
+  ].join('\n\n');
+  const qualityResult = await reviewer.complete(qualityPrompt);
+  if (!qualityResult.toLowerCase().includes('pass')) {
+    throw new Error(`execute: quality review failed for ${task.id}: ${qualityResult}`);
+  }
 }

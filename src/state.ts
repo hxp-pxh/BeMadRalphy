@@ -21,6 +21,13 @@ export type PipelineState = {
   updatedAt?: string;
   finishedAt?: string;
   runId?: string;
+  checkpoints?: Array<{ phase: string; timestamp: string }>;
+  artifactPaths?: {
+    brief?: string;
+    prd?: string;
+    architecture?: string;
+    stories?: string;
+  };
 };
 
 export async function loadState(projectRoot: string): Promise<PipelineState | null> {

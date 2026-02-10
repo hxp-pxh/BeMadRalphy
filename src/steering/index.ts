@@ -33,8 +33,18 @@ function agentsMd(projectName: string): string {
 Build and maintain ${projectName} according to the plan and BeMadRalphy conventions.
 
 ## Task Source
-- Beads (\`bd ready\`) is the single source of truth for tasks.
+- BeMadRalphy TaskManager (\`.bemadralphy/tasks.db\`) is the single source of truth for tasks.
 - Only mark tasks complete after tests pass.
+
+## Iron Laws
+- NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST.
+- NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE.
+- NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST.
+
+## Two-Stage Review
+- Stage 1: spec compliance review (did we build exactly what was requested?)
+- Stage 2: code quality review (is it maintainable and safe?)
+- Do not move to next task until both stages pass.
 
 ## Code Standards
 - Add TSDoc/JSDoc for all exported symbols.
@@ -52,6 +62,7 @@ Build and maintain ${projectName} according to the plan and BeMadRalphy conventi
 
 ## Testing
 - Run lint + typecheck + tests before marking tasks complete.
+- Follow Red-Green-Refactor for behavior changes.
 `;
 }
 
@@ -61,6 +72,7 @@ function cursorRules(): string {
 - Follow AGENTS.md for all coding conventions.
 - Keep changes minimal and focused.
 - Add tests when behavior changes.
+- Never claim completion without running verification commands.
 `;
 }
 
@@ -68,8 +80,9 @@ function claudeMd(): string {
   return `# CLAUDE Rules
 
 - Follow AGENTS.md for conventions.
-- Use Beads (\`bd ready\`, \`bd close\`) for task tracking.
+- Use the internal TaskManager for task tracking.
 - Do not commit \`.env\`.
+- Enforce TDD and verification-before-completion.
 `;
 }
 
@@ -99,7 +112,7 @@ function copilotInstructions(): string {
 function cursorProjectRule(): string {
   return `# Project Rules
 
-Follow AGENTS.md. This project uses Beads for task tracking and a branch-per-task workflow.
+Follow AGENTS.md. This project uses internal SQLite task tracking and a branch-per-task workflow.
 `;
 }
 

@@ -5,20 +5,21 @@ This document describes the architecture of BeMadRalphy, including module struct
 Current implementation covers:
 
 - Intake parsing (`idea.md`/`plan.md`) and `.bemadralphy/intake.yaml`
-- BMAD bootstrap plus generated planning outputs under `_bmad-output/`
+- Direct AI planning generation under `_bmad-output/`
 - Steering file generation (AGENTS.md, CLAUDE.md, Cursor/Windsurf/Cline/Kiro rules)
-- `tasks.md` generation and Beads issue lifecycle integration
+- `tasks.md` generation and internal SQLite task lifecycle integration
 - State and cost persistence in `.bemadralphy/`
-- Execution through CLI-backed engine adapters with Ralphy support
+- Execution through engine adapters with retry logic and optional two-stage reviews
 
 ## Overview
 
-BeMadRalphy is a CLI orchestrator that coordinates four underlying systems:
+BeMadRalphy is a self-contained CLI orchestrator that absorbs five parent systems:
 
 1. **BMAD-METHOD** — Planning workflows (product briefs, PRDs, architecture, stories)
-2. **Beads** — Git-backed task graph and persistent memory
-3. **Ralphy-style execution** — Multi-engine autonomous coding loop (logic ported, not a runtime dependency)
-4. **OpenSpec** — Living specifications and delta-based change tracking
+2. **Beads** — Task schema and dependency resolution patterns
+3. **Ralphy-style execution** — Multi-engine autonomous coding loop patterns
+4. **OpenSpec** — Living specs and delta-based validation/archive model
+5. **Superpowers** — TDD + review workflow methodology and guardrails
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────┐

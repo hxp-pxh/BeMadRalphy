@@ -17,6 +17,15 @@ export type RunConfig = {
   createPr?: boolean;
   output?: OutputFormat;
   plugins?: string[];
+  model?: string;
+  agent?: string;
+  timeout?: number;
+  templates?: {
+    productBrief?: string;
+    prd?: string;
+    architecture?: string;
+    stories?: string;
+  };
 };
 
 const FILE_CANDIDATES = ['.bemadralphyrc', 'bemad.config.json', 'bemad.config.js', 'bemad.config.mjs'];

@@ -5,13 +5,17 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   runDoctor,
+  runExecuteOnly,
   runExplore,
   runHistory,
   runInit,
+  runPlanOnly,
   runPipeline,
   runReplay,
+  runResume,
   runStatus,
 } from './orchestrator.js';
+import { TaskManager } from './tasks/index.js';
 
 const program = new Command();
 
@@ -33,6 +37,8 @@ program
   .option('--mode <mode>', 'Autonomy mode: auto|hybrid|supervised')
   .option('--engine <name>', 'AI engine to use')
   .option('--planning-engine <name>', 'Override engine for planning phase only')
+  .option('--model <name>', 'Model for direct planning calls')
+  .option('--timeout <seconds>', 'Task timeout hint in seconds', (v) => Number(v))
   .option('--max-parallel <n>', 'Max parallel tasks', (v) => Number(v))
   .option(
     '--execution-profile <profile>',
@@ -54,6 +60,89 @@ program
   .action(async (options, command) => {
     const resolved = resolveRunOptions(options, command);
     await runPipeline(resolved);
+  });
+
+program
+  .command('plan')
+  .description('Run intake + planning + steering phases')
+  .option('--output <format>', 'Output format: text|json', 'text')
+  .option('--model <name>', 'Model for direct planning calls')
+  .action(async (options) => {
+    await runPlanOnly({ output: options.output, model: options.model });
+  });
+
+program
+  .command('execute')
+  .description('Run sync + execute phases')
+  .option('--output <format>', 'Output format: text|json', 'text')
+  .option('--engine <name>', 'AI engine to use')
+  .action(async (options) => {
+    await runExecuteOnly({ output: options.output, engine: options.engine });
+  });
+
+program
+  .command('resume')
+  .description('Resume from latest checkpoint')
+  .option('--from <phase>', 'Resume from a specific phase')
+  .option('--output <format>', 'Output format: text|json', 'text')
+  .action(async (options) => {
+    await runResume({ fromPhase: options.from, output: options.output });
+  });
+
+const tasksCmd = program.command('tasks').description('Task manager commands');
+
+tasksCmd
+  .command('list')
+  .description('List tasks from internal task database')
+  .option('--status <status>', 'Filter by status')
+  .action(async (options) => {
+    const manager = await TaskManager.create(process.cwd());
+    const tasks = options.status ? manager.getByStatus(options.status) : manager.getAll();
+    for (const task of tasks) {
+      console.log(`${task.id}\t${task.status}\t${task.title}`);
+    }
+  });
+
+tasksCmd
+  .command('show <id>')
+  .description('Show a task by id')
+  .action(async (id: string) => {
+    const manager = await TaskManager.create(process.cwd());
+    const task = manager.get(id);
+    if (!task) {
+      console.log(`Task not found: ${id}`);
+      return;
+    }
+    console.log(JSON.stringify(task, null, 2));
+  });
+
+tasksCmd
+  .command('retry <id>')
+  .description('Retry a failed task')
+  .action(async (id: string) => {
+    const manager = await TaskManager.create(process.cwd());
+    const task = manager.retry(id);
+    console.log(`Task reset to open: ${task.id}`);
+  });
+
+program
+  .command('config')
+  .description('Config commands')
+  .command('set <key> <value>')
+  .description('Set key/value in .bemadralphyrc')
+  .action(async (key: string, value: string) => {
+    const fs = await import('node:fs/promises');
+    const cfgPath = path.join(process.cwd(), '.bemadralphyrc');
+    let current = {} as Record<string, unknown>;
+    try {
+      const raw = await fs.readFile(cfgPath, 'utf-8');
+      current = JSON.parse(raw);
+    } catch {
+      current = {};
+    }
+    current[key] = value;
+    await fs.writeFile(cfgPath, JSON.stringify(current, null, 2), 'utf-8');
+    console.log(`Updated ${cfgPath}: ${key}=${value}`);
   });
 
 program
@@ -109,6 +198,8 @@ function resolveRunOptions(
     mode: maybeOption(command, 'mode', options.mode),
     engine: maybeOption(command, 'engine', options.engine),
     planningEngine: maybeOption(command, 'planningEngine', options.planningEngine),
+    model: maybeOption(command, 'model', options.model),
+    timeout: maybeOption(command, 'timeout', options.timeout),
     maxParallel: maybeOption(command, 'maxParallel', options.maxParallel),
     executionProfile: maybeOption(command, 'executionProfile', options.executionProfile),
     audienceProfile: maybeOption(command, 'audienceProfile', options.audienceProfile),

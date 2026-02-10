@@ -9,8 +9,8 @@ If you want to contribute to this repository itself, use the developer guide in 
 Install and verify the required toolchain:
 
 ```bash
-# Required CLIs
-sudo npm install -g ralphy-cli bmad-method @beads/bd @fission-ai/openspec
+# Single required CLI
+sudo npm install -g bemadralphy
 
 # Required runtime tools
 node --version
@@ -18,16 +18,21 @@ npm --version
 git --version
 ```
 
-Confirm CLI availability on `PATH`:
+Confirm runtime availability:
 
 ```bash
-ralphy --version
-bmad --version
-bd --version
-openspec --version
+bemadralphy --version
 ```
 
-Install BeMadRalphy and verify:
+Set at least one planning API key:
+
+```bash
+export ANTHROPIC_API_KEY=...
+# or
+export OPENAI_API_KEY=...
+```
+
+Then verify environment health:
 
 ```bash
 npm install -g bemadralphy

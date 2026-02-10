@@ -2,7 +2,7 @@
 
 Welcome to BeMadRalphy! This guide will help you get set up for local development.
 
-> The repository now runs end-to-end with external CLIs. Install all required CLIs before running the pipeline.
+> The repository now runs with internal planning/task/spec engines. Parent CLIs are no longer required.
 >
 > If you want to run BeMadRalphy as a local user/operator, start with `docs/getting-started.md`.
 
@@ -32,21 +32,15 @@ If you are running your first local product pipeline in a target project, use `d
 
 Before you begin, ensure you have the following installed:
 
-| Tool     | Version | Check command         |
-| -------- | ------- | --------------------- |
-| Node.js  | 18+     | `node --version`      |
-| npm      | 9+      | `npm --version`       |
-| Git      | 2.30+   | `git --version`       |
-| Ralphy   | latest  | `ralphy --version`    |
-| BMAD     | latest  | `bmad --version`      |
-| Beads    | latest  | `bd --version`        |
-| OpenSpec | latest  | `openspec --version`  |
+| Tool    | Version | Check command    |
+| ------- | ------- | ---------------- |
+| Node.js | 18+     | `node --version` |
+| npm     | 9+      | `npm --version`  |
+| Git     | 2.30+   | `git --version`  |
 
-Install required CLIs:
+If developing task manager changes, ensure your machine can build native modules for `better-sqlite3` (C/C++ toolchain).
 
-```bash
-sudo npm install -g ralphy-cli bmad-method @beads/bd @fission-ai/openspec
-```
+Planning integration requires `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` for real runs (tests use fallback behavior).
 
 ---
 

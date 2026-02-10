@@ -1,11 +1,11 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { createAIProvider } from '../ai/index.js';
+import { loadRunConfig } from '../config.js';
 import type { PipelineContext } from '../phases/types.js';
-import { assertCommandExists, runCommandWithTimeout } from '../utils/exec.js';
+import { loadTemplate, renderTemplate } from '../templates/index.js';
 import { logInfo } from '../utils/logging.js';
 import { validateBmadOutputs } from './validate.js';
-
-const BMAD_INSTALL_TIMEOUT_MS = 30_000;
 
 export async function runPlanning(ctx: PipelineContext): Promise<void> {
   const outputDir = path.join(ctx.projectRoot, '_bmad-output');
@@ -20,76 +20,78 @@ export async function runPlanning(ctx: PipelineContext): Promise<void> {
   };
 
   if (ctx.dryRun) {
-    logInfo('planning: dry-run, skipping BMAD invocation');
+    logInfo('planning: dry-run, skipping AI planning invocation');
     return;
   }
 
-  await assertCommandExists('bmad', 'Install with: npm install -g bmad-method');
-  let usedFallback = false;
   try {
-    await runCommandWithTimeout(
-      'bmad',
-      [
-        'install',
-        '--action',
-        'quick-update',
-        '--directory',
-        ctx.projectRoot,
-        '--output-folder',
-        '_bmad-output',
-        '--tools',
-        'none',
-        '--yes',
-      ],
-      ctx.projectRoot,
-      BMAD_INSTALL_TIMEOUT_MS,
+    await runPlanningViaAi(ctx, outputs);
+  } catch (error) {
+    logInfo(
+      `planning: direct AI generation failed, writing fallback artifacts (${(error as Error).message})`,
     );
-    logInfo('planning: BMAD install/update completed');
-  } catch (error) {
-    const message = (error as Error).message;
-    if (isLikelyAutomationBlockedError(message)) {
-      logInfo('planning: BMAD install was blocked (interactive/timeout); generating fallback planning artifacts');
-      await writeFallbackPlanningOutputs(
-        ctx.projectRoot,
-        outputs,
-        'BMAD install was blocked in unattended mode (interactive prompt or timeout).',
-      );
-      usedFallback = true;
-    } else {
-      throw error;
-    }
+    await writeFallbackPlanningOutputs(
+      ctx.projectRoot,
+      outputs,
+      'AI planning generation failed. Replace with validated planning outputs.',
+    );
   }
-
-  try {
-    await validateBmadOutputs(outputs);
-  } catch (error) {
-    const message = (error as Error).message;
-    if (!usedFallback && isMissingOrEmptyPlanningOutputError(message)) {
-      logInfo('planning: BMAD did not produce required outputs; generating fallback planning artifacts');
-      await writeFallbackPlanningOutputs(
-        ctx.projectRoot,
-        outputs,
-        'BMAD command completed without generating required planning artifacts.',
-      );
-      await validateBmadOutputs(outputs);
-    } else {
-      throw error;
-    }
-  }
+  await validateBmadOutputs(outputs);
   logInfo('planning: BMAD outputs validated');
 }
 
-function isLikelyAutomationBlockedError(message: string): boolean {
-  const lowered = message.toLowerCase();
-  return (
-    lowered.includes('install to this directory') ||
-    lowered.includes('yes / no') ||
-    lowered.includes('prompt') ||
-    lowered.includes('tty') ||
-    lowered.includes('interactive') ||
-    lowered.includes('timed out') ||
-    lowered.includes('code=124')
+async function runPlanningViaAi(
+  ctx: PipelineContext,
+  outputs: {
+    productBriefPath: string;
+    prdPath: string;
+    architecturePath: string;
+    storiesPath: string;
+  },
+): Promise<void> {
+  const config = await loadRunConfig(ctx.projectRoot);
+  const idea = await readIdea(ctx.projectRoot);
+  const provider = createAIProvider(config.model);
+
+  const briefPrompt = renderTemplate(
+    await loadTemplate(ctx.projectRoot, 'product-brief', config.templates),
+    {
+      idea,
+      constraints: serializeArray(extractBulletSection(idea, 'Constraints')),
+      audienceProfile: ctx.audienceProfile ?? 'solo-dev',
+    },
   );
+  const brief = await provider.complete(briefPrompt, { model: config.model });
+  await writeFile(outputs.productBriefPath, brief, 'utf-8');
+
+  const prdPrompt = renderTemplate(await loadTemplate(ctx.projectRoot, 'prd', config.templates), {
+    productBrief: brief,
+    projectName: path.basename(ctx.projectRoot),
+  });
+  const prd = await provider.complete(prdPrompt, { model: config.model });
+  await writeFile(outputs.prdPath, prd, 'utf-8');
+
+  const architecturePrompt = renderTemplate(
+    await loadTemplate(ctx.projectRoot, 'architecture', config.templates),
+    {
+      prd,
+      techStack: serializeArray(extractBulletSection(idea, 'Tech Stack')),
+    },
+  );
+  const architecture = await provider.complete(architecturePrompt, { model: config.model });
+  await writeFile(outputs.architecturePath, architecture, 'utf-8');
+
+  const storiesPrompt = renderTemplate(
+    await loadTemplate(ctx.projectRoot, 'stories', config.templates),
+    {
+      prd,
+      architecture,
+    },
+  );
+  const stories = await provider.complete(storiesPrompt, { model: config.model });
+  await writeFile(outputs.storiesPath, stories, 'utf-8');
+
+  logInfo('planning: planning artifacts generated via direct AI provider');
 }
 
 async function writeFallbackPlanningOutputs(
@@ -146,7 +148,30 @@ async function readIdea(projectRoot: string): Promise<string> {
   }
 }
 
-function isMissingOrEmptyPlanningOutputError(message: string): boolean {
-  const lowered = message.toLowerCase();
-  return lowered.includes('missing') || lowered.includes('empty');
+function extractBulletSection(markdown: string, sectionName: string): string[] {
+  const lines = markdown.split(/\r?\n/);
+  const startIndex = lines.findIndex((line) =>
+    line.trim().toLowerCase().startsWith(`## ${sectionName.toLowerCase()}`),
+  );
+  if (startIndex < 0) {
+    return [];
+  }
+  const values: string[] = [];
+  for (let idx = startIndex + 1; idx < lines.length; idx += 1) {
+    const line = lines[idx].trim();
+    if (line.startsWith('## ')) {
+      break;
+    }
+    if (line.startsWith('- ')) {
+      values.push(line.slice(2).trim());
+    }
+  }
+  return values;
+}
+
+function serializeArray(values: string[]): string {
+  if (values.length === 0) {
+    return 'None provided';
+  }
+  return values.map((value) => `- ${value}`).join('\n');
 }
