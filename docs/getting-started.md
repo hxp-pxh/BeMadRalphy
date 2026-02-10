@@ -84,8 +84,8 @@ This command should:
 - create starter `idea.md` if it does not exist
 - run required setup integrations (`bd init`, OpenSpec initialization)
 
-If `bd`, `bmad`, or `openspec` are missing, `init` now completes with warnings and reports what is missing so you can install dependencies incrementally.
-When npm is available, `init` also attempts to auto-install missing `bd`, `bmad`, and `openspec`, and checks existing installs for available npm updates.
+If `bd`, `bmad`, `openspec`, or `ralphy` are missing, `init` now completes with warnings and reports what is missing so you can install dependencies incrementally.
+When npm is available, `init` also attempts to auto-install missing `bd`, `bmad`, `openspec`, and `ralphy`, and checks existing installs for available npm updates.
 
 ### 4) Add your idea
 

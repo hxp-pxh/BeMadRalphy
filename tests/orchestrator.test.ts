@@ -71,6 +71,9 @@ describe.sequential('runInit', () => {
           if (pkg === '@fission-ai/openspec' || pkg === '@fission-ai/openspec@latest') {
             available.add('openspec');
           }
+          if (pkg === 'ralphy-cli' || pkg === 'ralphy-cli@latest') {
+            available.add('ralphy');
+          }
         }
         if (command === 'npm' && args[0] === 'view') {
           return { stdout: '"1.0.0"\n', stderr: '' };
@@ -85,6 +88,7 @@ describe.sequential('runInit', () => {
     await runInit(tmpDir);
 
     expect(calls.some((call) => call.command === 'npm' && call.args[0] === 'install')).toBe(true);
+    expect(calls.some((call) => call.command === 'npm' && call.args[2] === 'ralphy-cli')).toBe(true);
     expect(calls.some((call) => call.command === 'bd' && call.args[0] === 'init')).toBe(true);
     expect(calls.some((call) => call.command === 'openspec' && call.args[0] === 'init')).toBe(true);
   });

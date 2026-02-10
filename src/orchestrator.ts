@@ -150,6 +150,13 @@ export async function runInit(projectRoot: string = process.cwd()): Promise<void
     cwd: projectRoot,
     installHint: 'Install with: npm install -g @fission-ai/openspec',
   });
+  const hasRalphy = await ensureDependency({
+    command: 'ralphy',
+    packageName: 'ralphy-cli',
+    hasNpm,
+    cwd: projectRoot,
+    installHint: 'Install with: npm install -g ralphy-cli',
+  });
 
   if (hasBd) {
     await runCommand('bd', ['init'], projectRoot);
@@ -167,15 +174,21 @@ export async function runInit(projectRoot: string = process.cwd()): Promise<void
   if (!hasBmad) {
     logInfo('init: bmad not found; planning phase will fail until installed (npm install -g bmad-method).');
   }
+  if (!hasRalphy) {
+    logInfo('init: ralphy not found; default execution engine may fail until installed (npm install -g ralphy-cli).');
+  }
 
-  const missingRequired = ['bd', 'bmad', 'openspec'].filter((cli) => {
+  const missingRequired = ['bd', 'bmad', 'openspec', 'ralphy'].filter((cli) => {
     if (cli === 'bd') {
       return !hasBd;
     }
     if (cli === 'bmad') {
       return !hasBmad;
     }
-    return !hasOpenSpec;
+    if (cli === 'openspec') {
+      return !hasOpenSpec;
+    }
+    return !hasRalphy;
   });
   if (missingRequired.length > 0) {
     logInfo(`init: partial setup complete. Missing CLIs: ${missingRequired.join(', ')}`);
@@ -611,7 +624,7 @@ async function checkDependency(
 }
 
 type InitDependency = {
-  command: 'bd' | 'bmad' | 'openspec';
+  command: 'bd' | 'bmad' | 'openspec' | 'ralphy';
   packageName: string;
   hasNpm: boolean;
   cwd: string;

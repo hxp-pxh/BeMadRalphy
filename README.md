@@ -503,7 +503,7 @@ node dist/cli.js --help
 `init` is now soft for onboarding:
 
 - Always scaffolds `.bemadralphy/`, `openspec/`, `_bmad-output/`, and starter `idea.md`.
-- If `bd`, `bmad`, or `openspec` are missing, it attempts `npm install -g` automatically.
+- If `bd`, `bmad`, `openspec`, or `ralphy` are missing, it attempts `npm install -g` automatically.
 - If those CLIs already exist and npm is available, it checks for newer npm releases and upgrades to latest when needed.
 - If auto-install/update fails, `init` still completes with warnings and reports actionable install hints.
 - Use `bemadralphy doctor` to check readiness before full pipeline runs.
