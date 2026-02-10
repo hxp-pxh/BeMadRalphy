@@ -27,10 +27,15 @@ export async function storiesToBeads(storyPaths: string[]): Promise<ParsedTask[]
       } else if (line.trim().toLowerCase().startsWith('- depends on:')) {
         const value = line.split(':', 2)[1]?.trim() ?? '';
         if (value) {
-          currentDependencies = value
+          const parsed = value
             .split(',')
             .map((entry) => entry.trim())
             .filter(Boolean);
+          for (const dependency of parsed) {
+            if (!currentDependencies.includes(dependency)) {
+              currentDependencies.push(dependency);
+            }
+          }
         }
       }
     }

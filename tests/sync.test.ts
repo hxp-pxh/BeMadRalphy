@@ -65,7 +65,16 @@ describe('syncPhase', () => {
     };
 
     await expect(syncPhase(ctx)).resolves.toEqual(ctx);
+    const manager = await TaskManager.create(tmpDir);
+    const firstRunTasks = manager.getAll();
+    expect(firstRunTasks).toHaveLength(1);
+    const firstRunTaskId = firstRunTasks[0]?.id;
+
     await expect(syncPhase(ctx)).resolves.toEqual(ctx);
+    const secondRunTasks = manager.getAll();
+    expect(secondRunTasks).toHaveLength(1);
+    expect(secondRunTasks[0]?.id).toBe(firstRunTaskId);
+
     const tasksMd = await readFile(path.join(tmpDir, 'tasks.md'), 'utf-8');
     expect(tasksMd).toContain('Task A');
   });

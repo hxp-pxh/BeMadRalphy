@@ -40,7 +40,7 @@ export class TaskManager {
 
   create(task: NewTask): Task {
     const now = new Date().toISOString();
-    const id = task.id ?? generateTaskId(task.title);
+    const id = task.id ?? generateTaskId(task.storyId, task.title);
     this.db
       .prepare(
         `INSERT INTO tasks (
@@ -221,11 +221,16 @@ type TaskRow = {
   closed_at: string | null;
 };
 
-function generateTaskId(title: string): string {
+function generateTaskId(storyId: string, title: string): string {
   const normalized = title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
-  const suffix = Math.random().toString(36).slice(2, 6);
+  const source = `${storyId}:${title}`.toLowerCase();
+  let hash = 5381;
+  for (let index = 0; index < source.length; index += 1) {
+    hash = (hash * 33) ^ source.charCodeAt(index);
+  }
+  const suffix = (hash >>> 0).toString(36).padStart(6, '0').slice(-6);
   return `${normalized || 'task'}-${suffix}`;
 }
