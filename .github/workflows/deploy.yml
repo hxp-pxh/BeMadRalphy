@@ -1,0 +1,40 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, full-go-real-clis]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install and build
+        run: |
+          npm install
+          npm run build
+          npm test
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /tmp
+            rm -rf bemadralphy-build
+            git clone -b ${{ github.ref_name }} https://github.com/hxp-pxh/BeMadRalphy.git bemadralphy-build
+            cd bemadralphy-build
+            sudo docker build -t bemadralphy:latest .
+            sudo docker tag bemadralphy:latest ghcr.io/hxp-pxh/bemadralphy:latest
+            echo "✅ Deployed ${{ github.sha }} at $(date)"
