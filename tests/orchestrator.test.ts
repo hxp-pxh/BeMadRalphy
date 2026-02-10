@@ -2,7 +2,7 @@ import { access, mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { runInit, runPipeline } from '../src/orchestrator.js';
+import { runDoctor, runInit, runPipeline } from '../src/orchestrator.js';
 import { resetCommandRunners, setCommandRunners } from '../src/utils/exec.js';
 
 describe.sequential('runInit', () => {
@@ -30,6 +30,26 @@ describe.sequential('runInit', () => {
     await access(path.join(tmpDir, 'idea.md'));
     expect(calls.some((call) => call.command === 'bd' && call.args[0] === 'init')).toBe(true);
     expect(calls.some((call) => call.command === 'openspec' && call.args[0] === 'init')).toBe(true);
+  });
+
+  it('completes partial setup when required CLIs are missing', async () => {
+    const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'bemadralphy-'));
+    const calls: Array<{ command: string; args: string[] }> = [];
+    setCommandRunners({
+      commandExists: async () => false,
+      runCommand: async (command, args = []) => {
+        calls.push({ command, args });
+        return { stdout: '', stderr: '' };
+      },
+    });
+
+    await runInit(tmpDir);
+
+    await access(path.join(tmpDir, '.bemadralphy'));
+    await access(path.join(tmpDir, 'openspec', 'specs'));
+    await access(path.join(tmpDir, '_bmad-output', 'stories'));
+    await access(path.join(tmpDir, 'idea.md'));
+    expect(calls).toHaveLength(0);
   });
 });
 
@@ -95,5 +115,21 @@ describe.sequential('runPipeline', () => {
     const historyRaw = await readFile(path.join(tmpDir, '.bemadralphy', 'runs.jsonl'), 'utf-8');
     expect(historyRaw).toContain('"status":"completed"');
     expect(calls.some((call) => call.command === 'bd' && call.args[0] === 'ready')).toBe(true);
+  });
+});
+
+describe.sequential('runDoctor', () => {
+  afterEach(() => {
+    resetCommandRunners();
+  });
+
+  it('runs dependency checks in text and json modes', async () => {
+    setCommandRunners({
+      commandExists: async (command) => ['npm', 'bd', 'bmad', 'openspec'].includes(command),
+      runCommand: async () => ({ stdout: '', stderr: '' }),
+    });
+
+    await runDoctor('text');
+    await runDoctor('json');
   });
 });

@@ -45,6 +45,13 @@ npx bemadralphy --help
 export PATH="$(npm config get prefix)/bin:$PATH"
 ```
 
+Optional readiness check:
+
+```bash
+bemadralphy doctor
+bemadralphy doctor --output json
+```
+
 ## 10-Minute First Run
 
 ### 1) Build this project once
@@ -76,6 +83,8 @@ This command should:
 - create `.bemadralphy/`, `openspec/`, and `_bmad-output/`
 - create starter `idea.md` if it does not exist
 - run required setup integrations (`bd init`, OpenSpec initialization)
+
+If `bd`, `bmad`, or `openspec` are missing, `init` now completes with warnings and reports what is missing so you can install dependencies incrementally.
 
 ### 4) Add your idea
 

@@ -191,6 +191,10 @@ npx bemadralphy status
 # Show run history (human or JSON)
 npx bemadralphy history
 npx bemadralphy history --output json
+
+# Check local dependency readiness
+npx bemadralphy doctor
+npx bemadralphy doctor --output json
 ```
 
 ---
@@ -495,6 +499,12 @@ node dist/cli.js --help
 - Sync fails if stories cannot be parsed or Beads writes fail.
 - Execute fails for unknown/unavailable engines.
 - Verify/Post fail if OpenSpec commands fail.
+
+`init` is now soft for onboarding:
+
+- Always scaffolds `.bemadralphy/`, `openspec/`, `_bmad-output/`, and starter `idea.md`.
+- If `bd`, `bmad`, or `openspec` are missing, it completes with warnings and reports missing CLIs.
+- Use `bemadralphy doctor` to check readiness before full pipeline runs.
 
 Typical recovery flow:
 

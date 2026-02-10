@@ -3,7 +3,15 @@ import { Command } from 'commander';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { runExplore, runHistory, runInit, runPipeline, runReplay, runStatus } from './orchestrator.js';
+import {
+  runDoctor,
+  runExplore,
+  runHistory,
+  runInit,
+  runPipeline,
+  runReplay,
+  runStatus,
+} from './orchestrator.js';
 
 const program = new Command();
 
@@ -69,6 +77,14 @@ program
   .option('--output <format>', 'Output format: text|json', 'text')
   .action(async (options) => {
     await runHistory(options.output);
+  });
+
+program
+  .command('doctor')
+  .description('Check local environment dependencies and readiness')
+  .option('--output <format>', 'Output format: text|json', 'text')
+  .action(async (options) => {
+    await runDoctor(options.output);
   });
 
 program

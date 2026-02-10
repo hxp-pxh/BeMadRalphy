@@ -22,7 +22,7 @@ import {
 } from './phases/index.js';
 import { loadState, saveState } from './state.js';
 import { generateSpecs } from './specs/index.js';
-import { assertCommandExists, runCommand } from './utils/exec.js';
+import { commandExists, runCommand } from './utils/exec.js';
 import {
   configureLogger,
   logError,
@@ -128,15 +128,41 @@ export async function runInit(projectRoot: string = process.cwd()): Promise<void
     logInfo('init: created starter idea.md');
   }
 
-  await assertCommandExists('bd', 'Install from https://github.com/steveyegge/beads.');
-  await assertCommandExists('bmad', 'Install with: npm install -g bmad-method');
-  await assertCommandExists('openspec', 'Install with: npm install -g @fission-ai/openspec');
+  const hasBd = await commandExists('bd');
+  const hasBmad = await commandExists('bmad');
+  const hasOpenSpec = await commandExists('openspec');
 
-  await runCommand('bd', ['init'], projectRoot);
-  logInfo('init: Beads initialized');
-  await generateSpecs(projectRoot);
+  if (hasBd) {
+    await runCommand('bd', ['init'], projectRoot);
+    logInfo('init: Beads initialized');
+  } else {
+    logInfo('init: bd not found; skipped Beads init. Install from https://github.com/steveyegge/beads.');
+  }
 
-  logInfo('init: completed scaffold of .bemadralphy, openspec/, and _bmad-output/');
+  if (hasOpenSpec) {
+    await generateSpecs(projectRoot);
+  } else {
+    logInfo('init: openspec not found; skipped OpenSpec init. Install with: npm install -g @fission-ai/openspec');
+  }
+
+  if (!hasBmad) {
+    logInfo('init: bmad not found; planning phase will fail until installed (npm install -g bmad-method).');
+  }
+
+  const missingRequired = ['bd', 'bmad', 'openspec'].filter((cli) => {
+    if (cli === 'bd') {
+      return !hasBd;
+    }
+    if (cli === 'bmad') {
+      return !hasBmad;
+    }
+    return !hasOpenSpec;
+  });
+  if (missingRequired.length > 0) {
+    logInfo(`init: partial setup complete. Missing CLIs: ${missingRequired.join(', ')}`);
+  } else {
+    logInfo('init: completed scaffold of .bemadralphy, openspec/, and _bmad-output/');
+  }
 }
 
 export async function runPipeline(options: RunOptions): Promise<void> {
@@ -316,7 +342,7 @@ export async function runStatus(output: OutputFormat = 'text'): Promise<void> {
   const projectRoot = process.cwd();
   const state = await loadState(projectRoot);
   if (!state) {
-    logInfo('status: no state found (.bemadralphy/state.yaml missing)');
+    logInfo('status: no state found (.bemadralphy/state.yaml missing). Run "bemadralphy init" to get started.');
     return;
   }
 
@@ -337,7 +363,7 @@ export async function runHistory(output: OutputFormat = 'text'): Promise<void> {
     return;
   }
   if (records.length === 0) {
-    logInfo('history: no runs found');
+    logInfo('history: no runs found. Run "bemadralphy init" then "bemadralphy run" to create your first run.');
     return;
   }
   for (const row of records) {
@@ -365,6 +391,42 @@ export async function runReplay(runId: string, options: Partial<RunOptions> = {}
       : undefined,
   };
   await runPipeline(replayOptions);
+}
+
+export async function runDoctor(output: OutputFormat = 'text'): Promise<void> {
+  configureLogger({ outputFormat: output });
+  const checks = await Promise.all([
+    checkDependency('node', true, `found ${process.version}`),
+    checkDependency('npm', true, 'required for npm-based install/update flows'),
+    checkDependency('bd', true, 'Install from https://github.com/steveyegge/beads.'),
+    checkDependency('bmad', true, 'Install with: npm install -g bmad-method'),
+    checkDependency('openspec', true, 'Install with: npm install -g @fission-ai/openspec'),
+    checkDependency('ralphy', false, 'Install with: npm install -g ralphy-cli'),
+    checkDependency('gh', false, 'Install GitHub CLI from https://cli.github.com/'),
+    checkDependency('ollama', false, 'Install from https://ollama.com/download for local models.'),
+  ]);
+
+  const missingRequired = checks.filter((entry) => entry.required && !entry.installed);
+  if (output === 'json') {
+    logSummary({
+      status: missingRequired.length === 0 ? 'ok' : 'degraded',
+      checks,
+      missingRequired: missingRequired.map((entry) => entry.name),
+    });
+    return;
+  }
+
+  for (const check of checks) {
+    const state = check.installed ? 'ok' : check.required ? 'missing' : 'optional-missing';
+    logInfo(`doctor: ${check.name}=${state}${check.hint ? ` (${check.hint})` : ''}`);
+  }
+  if (missingRequired.length > 0) {
+    logInfo(
+      `doctor: missing required CLIs (${missingRequired.map((entry) => entry.name).join(', ')}). Install them before running full pipeline.`,
+    );
+    return;
+  }
+  logInfo('doctor: environment looks good for full pipeline runs.');
 }
 
 function stateFrom(
@@ -515,4 +577,16 @@ async function appendFailure(
     `${new Date().toISOString()} runId=${runId} phase=${phase} error=${message}\n`,
     { encoding: 'utf-8', flag: 'a' },
   );
+}
+
+async function checkDependency(
+  name: string,
+  required: boolean,
+  hint?: string,
+): Promise<{ name: string; required: boolean; installed: boolean; hint?: string }> {
+  if (name === 'node') {
+    return { name, required, installed: true, hint };
+  }
+  const installed = await commandExists(name);
+  return { name, required, installed, hint: installed ? undefined : hint };
 }
