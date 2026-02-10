@@ -505,6 +505,7 @@ node dist/cli.js --help
 - Always scaffolds `.bemadralphy/`, `openspec/`, `_bmad-output/`, and starter `idea.md`.
 - If `bd`, `bmad`, `openspec`, or `ralphy` are missing, it attempts `npm install -g` automatically.
 - If those CLIs already exist and npm is available, it checks for newer npm releases and upgrades to latest when needed.
+- If npm packages are installed globally but CLIs are not on PATH, it creates command shims in `~/.local/bin` when possible.
 - If auto-install/update fails, `init` still completes with warnings and reports actionable install hints.
 - Use `bemadralphy doctor` to check readiness before full pipeline runs.
 

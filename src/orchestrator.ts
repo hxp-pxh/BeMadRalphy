@@ -1,4 +1,5 @@
-import { access, mkdir, writeFile } from 'node:fs/promises';
+import { access, chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { CostTracker } from './cost.js';
 import { estimateRunCost } from './cost.js';
@@ -635,6 +636,15 @@ async function ensureDependency(entry: InitDependency): Promise<boolean> {
   let installed = await commandExists(entry.command);
 
   if (!installed) {
+    if (entry.hasNpm && (await isGlobalNpmPackageInstalled(entry.packageName, entry.cwd))) {
+      installed = await ensureCommandShimFromGlobalPackage(entry);
+      if (installed) {
+        logInfo(`init: recovered ${entry.command} from npm global install via local shim`);
+      }
+    }
+  }
+
+  if (!installed) {
     if (!entry.hasNpm) {
       logInfo(`init: ${entry.command} not found; ${entry.installHint}`);
       return false;
@@ -642,7 +652,7 @@ async function ensureDependency(entry: InitDependency): Promise<boolean> {
     try {
       logInfo(`init: ${entry.command} not found; attempting install (${entry.packageName})`);
       await runCommand('npm', ['install', '-g', entry.packageName], entry.cwd);
-      installed = await commandExists(entry.command);
+      installed = await ensureCommandShimFromGlobalPackage(entry);
       if (!installed) {
         logInfo(`init: ${entry.command} install command completed but CLI is still missing on PATH.`);
         return false;
@@ -692,4 +702,67 @@ async function getPackageLatestSemver(packageName: string): Promise<string | nul
   const { stdout } = await runCommand('npm', ['view', packageName, 'version', '--json']);
   const parsed = JSON.parse(stdout.trim()) as string | undefined;
   return typeof parsed === 'string' && parsed.length > 0 ? parsed : null;
+}
+
+async function isGlobalNpmPackageInstalled(packageName: string, cwd: string): Promise<boolean> {
+  try {
+    const { stdout } = await runCommand('npm', ['ls', '-g', packageName, '--depth=0', '--json'], cwd);
+    const parsed = JSON.parse(stdout) as { dependencies?: Record<string, unknown> };
+    return Boolean(parsed.dependencies?.[packageName]);
+  } catch {
+    return false;
+  }
+}
+
+async function ensureCommandShimFromGlobalPackage(entry: InitDependency): Promise<boolean> {
+  if (await commandExists(entry.command)) {
+    return true;
+  }
+  const scriptPath = await resolveGlobalPackageCommandPath(entry.packageName, entry.command, entry.cwd);
+  if (!scriptPath) {
+    return false;
+  }
+  const shimDir = path.join(os.homedir(), '.local', 'bin');
+  const shimPath = path.join(shimDir, entry.command);
+  await mkdir(shimDir, { recursive: true });
+  await writeFile(
+    shimPath,
+    `#!/bin/bash\nexec node "${scriptPath.replace(/"/g, '\\"')}" "$@"\n`,
+    'utf-8',
+  );
+  await chmod(shimPath, 0o755);
+  return (await commandExists(entry.command)) || process.env.PATH?.split(':').includes(shimDir) === true;
+}
+
+async function resolveGlobalPackageCommandPath(
+  packageName: string,
+  command: string,
+  cwd: string,
+): Promise<string | null> {
+  try {
+    const { stdout } = await runCommand('npm', ['root', '-g'], cwd);
+    const root = stdout.trim();
+    if (!root) {
+      return null;
+    }
+    const packageDir = path.join(root, packageName);
+    const packageJsonPath = path.join(packageDir, 'package.json');
+    const packageJsonRaw = await readFile(packageJsonPath, 'utf-8');
+    const packageJson = JSON.parse(packageJsonRaw) as { bin?: string | Record<string, string> };
+    const bin = packageJson.bin;
+    let relativeBinPath: string | undefined;
+    if (typeof bin === 'string') {
+      relativeBinPath = bin;
+    } else if (bin && typeof bin === 'object') {
+      relativeBinPath = bin[command] ?? Object.values(bin).find((value) => typeof value === 'string');
+    }
+    if (!relativeBinPath) {
+      return null;
+    }
+    const fullPath = path.join(packageDir, relativeBinPath);
+    await access(fullPath);
+    return fullPath;
+  } catch {
+    return null;
+  }
 }
