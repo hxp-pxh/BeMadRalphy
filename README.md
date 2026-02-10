@@ -310,7 +310,36 @@ cost_usd: 3.47
 
 ## Installation
 
-For the fastest end-to-end setup path, use [`docs/getting-started.md`](docs/getting-started.md).
+### Quick Install (Recommended)
+
+```bash
+# npm
+npm install -g bemadralphy
+
+# pnpm
+pnpm add -g bemadralphy
+
+# bun
+bun add -g bemadralphy
+
+# yarn
+yarn global add bemadralphy
+
+# or use the install script
+curl -fsSL https://raw.githubusercontent.com/hxp-pxh/BeMadRalphy/main/install.sh | bash
+```
+
+### Docker
+
+```bash
+# Pull from GitHub Container Registry
+docker pull ghcr.io/hxp-pxh/bemadralphy:latest
+
+# Run
+docker run -v $(pwd):/workspace ghcr.io/hxp-pxh/bemadralphy init
+```
+
+For detailed first-run setup, see [`docs/getting-started.md`](docs/getting-started.md).
 
 ### Install required external CLIs
 

@@ -1,0 +1,12 @@
+node_modules
+.git
+.github
+tests
+*.md
+!README.md
+.bemadralphy
+_bmad-output
+coverage
+.vscode
+.idea
+*.log

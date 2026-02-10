@@ -38,5 +38,44 @@
     "tsx": "^4.7.1",
     "typescript": "^5.4.2",
     "vitest": "^1.4.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hxp-pxh/BeMadRalphy.git"
+  },
+  "homepage": "https://github.com/hxp-pxh/BeMadRalphy#readme",
+  "bugs": {
+    "url": "https://github.com/hxp-pxh/BeMadRalphy/issues"
+  },
+  "author": "Hanns Princivil <hprincivil@sharetact.co>",
+  "keywords": [
+    "cli",
+    "ai",
+    "automation",
+    "bmad",
+    "beads",
+    "ralphy",
+    "openspec",
+    "coding",
+    "orchestrator",
+    "pipeline",
+    "developer-tools"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./cli": {
+      "import": "./dist/cli.js"
+    }
   }
 }

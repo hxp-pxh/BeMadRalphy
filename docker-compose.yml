@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  bemadralphy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ghcr.io/hxp-pxh/bemadralphy:latest
+    container_name: bemadralphy
+    volumes:
+      - ./workspace:/workspace
+    working_dir: /workspace
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=false"  # CLI tool, no web interface
+
+  # Optional: Run as a persistent service for API mode (future)
+  # bemadralphy-api:
+  #   extends: bemadralphy
+  #   command: ["serve", "--port", "3000"]
+  #   ports:
+  #     - "3000:3000"
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.bemadralphy.rule=Host(`bemadralphy.sharehost.us`)"
