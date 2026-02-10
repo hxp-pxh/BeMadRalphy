@@ -4,6 +4,8 @@
 
 > End-to-end automated coding: idea in → planning → task graph → swarm-aware execution → living specs → deployment.
 
+[![npm version](https://img.shields.io/npm/v/bemadralphy.svg)](https://www.npmjs.com/package/bemadralphy)
+[![npm downloads](https://img.shields.io/npm/dm/bemadralphy.svg)](https://www.npmjs.com/package/bemadralphy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ## Status
