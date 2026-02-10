@@ -28,11 +28,14 @@ export class BeadsWriter {
   async create(title: string, body: string): Promise<string> {
     return this.enqueue(async () => {
       if (!(await this.isAvailable())) {
-        logInfo('BeadsWriter.create: bd not available; returning placeholder id');
-        return 'bd-unknown';
+        throw new Error('BeadsWriter.create: bd not available');
       }
       const { stdout } = await runCommand('bd', ['create', title, '--body', body], this.cwd);
-      return stdout.trim() || 'bd-unknown';
+      const id = stdout.trim();
+      if (!id) {
+        throw new Error('BeadsWriter.create: bd did not return an issue id');
+      }
+      return id;
     });
   }
 

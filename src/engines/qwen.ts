@@ -1,3 +1,8 @@
-import { createStubAdapter } from './stub.js';
+import { createCliAdapter } from './cli-adapter.js';
 
-export const qwenAdapter = createStubAdapter('qwen', false);
+export const qwenAdapter = createCliAdapter({
+  name: 'qwen',
+  commandName: 'qwen',
+  hasNativeSwarm: false,
+  ralphyFlag: '--qwen',
+});

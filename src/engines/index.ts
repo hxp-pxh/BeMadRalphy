@@ -6,6 +6,7 @@ import { geminiAdapter } from './gemini.js';
 import { kimiAdapter } from './kimi.js';
 import { opencodeAdapter } from './opencode.js';
 import { qwenAdapter } from './qwen.js';
+import { ralphyAdapter } from './ralphy.js';
 import type { EngineAdapter } from './types.js';
 
 export const engineAdapters: Record<string, EngineAdapter> = {
@@ -17,4 +18,5 @@ export const engineAdapters: Record<string, EngineAdapter> = {
   kimi: kimiAdapter,
   opencode: opencodeAdapter,
   qwen: qwenAdapter,
+  ralphy: ralphyAdapter,
 };

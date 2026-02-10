@@ -15,7 +15,7 @@ export async function executePhase(ctx: PipelineContext): Promise<PipelineContex
     return ctx;
   }
 
-  const engineName = ctx.engine ?? 'claude';
+  const engineName = ctx.engine ?? 'ralphy';
   const adapter = engineAdapters[engineName];
   if (!adapter) {
     logInfo(`execute: unknown engine "${engineName}"`);
@@ -27,11 +27,13 @@ export async function executePhase(ctx: PipelineContext): Promise<PipelineContex
 
   if (swarmMode === 'native') {
     if (engineName === 'claude') {
-      await runClaudeTeamsBatch();
+      await runClaudeTeamsBatch(ctx.projectRoot, ctx.maxParallel ?? 3);
     } else if (engineName === 'kimi') {
-      await runKimiParlBatch();
+      await runKimiParlBatch(ctx.projectRoot, ctx.maxParallel ?? 3);
     } else if (engineName === 'codex') {
-      await runCodexAgentsBatch();
+      await runCodexAgentsBatch(ctx.projectRoot, ctx.maxParallel ?? 3);
+    } else {
+      await runBdReadyLoop(ctx, adapter);
     }
   } else if (swarmMode === 'process') {
     await runBdReadyLoop(ctx, adapter);
@@ -71,6 +73,7 @@ async function runBdReadyLoop(
     } else if (result.status === 'failed') {
       await writer.update(id, result.error ?? 'task failed');
     } else {
+      await writer.update(id, result.output ?? 'task skipped');
       logInfo(`execute: task ${id} skipped`);
     }
   }

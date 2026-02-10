@@ -1,3 +1,8 @@
-import { createStubAdapter } from './stub.js';
+import { createCliAdapter } from './cli-adapter.js';
 
-export const codexAdapter = createStubAdapter('codex', true);
+export const codexAdapter = createCliAdapter({
+  name: 'codex',
+  commandName: 'codex',
+  hasNativeSwarm: true,
+  ralphyFlag: '--codex',
+});

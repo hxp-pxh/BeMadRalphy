@@ -1,3 +1,8 @@
-import { createStubAdapter } from './stub.js';
+import { createCliAdapter } from './cli-adapter.js';
 
-export const cursorAdapter = createStubAdapter('cursor', false);
+export const cursorAdapter = createCliAdapter({
+  name: 'cursor',
+  commandName: 'cursor',
+  hasNativeSwarm: false,
+  ralphyFlag: '--cursor',
+});

@@ -1,4 +1,4 @@
-import { mkdir } from 'node:fs/promises';
+import { access, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { CostTracker } from './cost.js';
 import {
@@ -15,6 +15,7 @@ import {
     type PipelineMode,
 } from './phases/index.js';
 import { loadState, saveState } from './state.js';
+import { generateSpecs } from './specs/index.js';
 import { commandExists, runCommand } from './utils/exec.js';
 import { logInfo } from './utils/logging.js';
 
@@ -28,17 +29,40 @@ export type RunOptions = {
   swarm?: 'native' | 'process' | 'off';
   createPr: boolean;
   dryRun: boolean;
+  projectRoot?: string;
 };
 
-export async function runInit(): Promise<void> {
-  const projectRoot = process.cwd();
+export async function runInit(projectRoot: string = process.cwd()): Promise<void> {
   const bemadDir = path.join(projectRoot, '.bemadralphy');
   const openspecDir = path.join(projectRoot, 'openspec');
+  const ideaPath = path.join(projectRoot, 'idea.md');
 
   await mkdir(bemadDir, { recursive: true });
   await mkdir(path.join(openspecDir, 'specs'), { recursive: true });
   await mkdir(path.join(openspecDir, 'changes', 'archive'), { recursive: true });
   await mkdir(path.join(projectRoot, '_bmad-output', 'stories'), { recursive: true });
+
+  try {
+    await access(ideaPath);
+  } catch {
+    await writeFile(
+      ideaPath,
+      [
+        '# Project Idea',
+        '',
+        'Describe the product or change request here.',
+        '',
+        '## Goals',
+        '- Goal 1',
+        '',
+        '## Constraints',
+        '- Constraint 1',
+        '',
+      ].join('\n'),
+      'utf-8',
+    );
+    logInfo('init: created starter idea.md');
+  }
 
   const hasBeads = await commandExists('bd');
   if (hasBeads) {
@@ -53,15 +77,22 @@ export async function runInit(): Promise<void> {
     logInfo('init: BMAD CLI not found. Install BMAD-METHOD before planning.');
   }
 
+  try {
+    await generateSpecs(projectRoot);
+  } catch (error) {
+    logInfo(`init: openspec initialization skipped (${(error as Error).message})`);
+  }
+
   logInfo('init: completed scaffold of .bemadralphy, openspec/, and _bmad-output/');
 }
 
 export async function runPipeline(options: RunOptions): Promise<void> {
+  const projectRoot = options.projectRoot ?? process.cwd();
   const context: PipelineContext = {
     runId: new Date().toISOString(),
     mode: options.mode,
     dryRun: options.dryRun,
-    projectRoot: process.cwd(),
+    projectRoot,
     engine: options.engine,
     planningEngine: options.planningEngine,
     maxParallel: options.maxParallel,

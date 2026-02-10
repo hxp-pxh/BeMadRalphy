@@ -1,3 +1,9 @@
-import { createStubAdapter } from './stub.js';
+import { createCliAdapter } from './cli-adapter.js';
 
-export const claudeAdapter = createStubAdapter('claude', true, ['--dangerously-skip-permissions']);
+export const claudeAdapter = createCliAdapter({
+  name: 'claude',
+  commandName: 'claude',
+  hasNativeSwarm: true,
+  permissionFlags: ['--dangerously-skip-permissions'],
+  ralphyFlag: '--claude',
+});

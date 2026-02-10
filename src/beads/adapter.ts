@@ -1,5 +1,4 @@
 import { readFile } from 'node:fs/promises';
-import { logInfo } from '../utils/logging.js';
 
 export type ParsedTask = {
   id: string;
@@ -18,11 +17,6 @@ export async function storiesToBeads(storyPaths: string[]): Promise<ParsedTask[]
         tasks.push({ id: `bd-${counter++}`, title: line.replace(/^###\s+/, '') });
       }
     }
-  }
-
-  if (tasks.length === 0) {
-    logInfo('No stories found; creating a placeholder task');
-    tasks.push({ id: 'bd-1', title: 'Placeholder task' });
   }
 
   return tasks;

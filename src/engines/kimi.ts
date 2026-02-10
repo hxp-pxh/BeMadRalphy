@@ -1,3 +1,7 @@
-import { createStubAdapter } from './stub.js';
+import { createCliAdapter } from './cli-adapter.js';
 
-export const kimiAdapter = createStubAdapter('kimi', true);
+export const kimiAdapter = createCliAdapter({
+  name: 'kimi',
+  commandName: 'kimi',
+  hasNativeSwarm: true,
+});

@@ -1,3 +1,8 @@
-import { createStubAdapter } from './stub.js';
+import { createCliAdapter } from './cli-adapter.js';
 
-export const copilotAdapter = createStubAdapter('copilot', false);
+export const copilotAdapter = createCliAdapter({
+  name: 'copilot',
+  commandName: 'copilot',
+  hasNativeSwarm: false,
+  ralphyFlag: '--copilot',
+});

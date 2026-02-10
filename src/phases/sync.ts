@@ -11,6 +11,10 @@ export async function syncPhase(ctx: PipelineContext): Promise<PipelineContext> 
   const storyPath = path.join(ctx.projectRoot, '_bmad-output', 'stories', 'epics.md');
   try {
     const tasks = await storiesToBeads([storyPath]);
+    if (tasks.length === 0) {
+      logInfo('sync: no tasks parsed from stories file; skipping bead creation');
+      return ctx;
+    }
     const tasksMd = renderTasksMarkdown(
       tasks.map((task) => ({ id: task.id, title: task.title, status: 'ready' })),
     );
