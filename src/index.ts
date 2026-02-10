@@ -1,2 +1,2 @@
-export { runExplore, runInit, runPipeline, runStatus } from './orchestrator.js';
+export { runExplore, runHistory, runInit, runPipeline, runReplay, runStatus } from './orchestrator.js';
 export type { RunOptions } from './orchestrator.js';

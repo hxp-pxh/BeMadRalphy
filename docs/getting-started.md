@@ -88,6 +88,41 @@ Execution profiles:
 - `balanced` (default): moderate parallelism for normal use
 - `fast`: maximum requested concurrency for speed-focused runs
 
+### 6) Preflight preview before spending tokens
+
+```bash
+node /path/to/BMAD-BEADS-RALPHY/dist/cli.js run --dry-run --output json
+```
+
+The dry run now prints planned phases, estimated task count, and estimated cost range without running execution phases.
+
+### 7) Resume or replay
+
+```bash
+# Resume from latest checkpoint in .bemadralphy/state.yaml
+node /path/to/BMAD-BEADS-RALPHY/dist/cli.js run --resume
+
+# View historical runs
+node /path/to/BMAD-BEADS-RALPHY/dist/cli.js history
+
+# Replay a previous run from a chosen boundary
+node /path/to/BMAD-BEADS-RALPHY/dist/cli.js replay <runId> --from-phase execute
+```
+
+## Optional config file
+
+To avoid repeating flags, create `.bemadralphyrc` or `bemad.config.js` in your project root.
+
+Example:
+
+```yaml
+mode: hybrid
+engine: ralphy
+executionProfile: safe
+maxParallel: 2
+output: text
+```
+
 ## Expected Outputs Checklist
 
 After a successful run, verify:

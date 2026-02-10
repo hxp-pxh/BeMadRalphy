@@ -1,3 +1,5 @@
+import type { OutputFormat } from '../utils/logging.js';
+
 export type PipelineMode = 'auto' | 'hybrid' | 'supervised';
 export type ExecutionProfile = 'safe' | 'balanced' | 'fast';
 export type AudienceProfile = 'solo-dev' | 'agency-team' | 'product-team' | 'enterprise-team';
@@ -25,4 +27,7 @@ export type PipelineContext = {
   brownfield?: boolean;
   swarm?: 'native' | 'process' | 'off';
   createPr?: boolean;
+  output?: OutputFormat;
+  resume?: boolean;
+  fromPhase?: string;
 };

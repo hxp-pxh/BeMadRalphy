@@ -4,6 +4,7 @@ import { copilotAdapter } from './copilot.js';
 import { cursorAdapter } from './cursor.js';
 import { geminiAdapter } from './gemini.js';
 import { kimiAdapter } from './kimi.js';
+import { ollamaAdapter } from './ollama.js';
 import { opencodeAdapter } from './opencode.js';
 import { qwenAdapter } from './qwen.js';
 import { ralphyAdapter } from './ralphy.js';
@@ -16,6 +17,7 @@ export const engineAdapters: Record<string, EngineAdapter> = {
   cursor: cursorAdapter,
   gemini: geminiAdapter,
   kimi: kimiAdapter,
+  ollama: ollamaAdapter,
   opencode: opencodeAdapter,
   qwen: qwenAdapter,
   ralphy: ralphyAdapter,
