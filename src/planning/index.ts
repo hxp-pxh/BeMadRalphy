@@ -23,6 +23,7 @@ export async function runPlanning(ctx: PipelineContext): Promise<void> {
   }
 
   await assertCommandExists('bmad', 'Install with: npm install -g bmad-method');
+  let usedFallback = false;
   try {
     await runCommand(
       'bmad',
@@ -45,13 +46,29 @@ export async function runPlanning(ctx: PipelineContext): Promise<void> {
     const message = (error as Error).message;
     if (isLikelyInteractiveInstallError(message)) {
       logInfo('planning: BMAD install appears interactive; generating fallback planning artifacts');
-      await writeFallbackPlanningOutputs(ctx.projectRoot, outputs);
+      await writeFallbackPlanningOutputs(ctx.projectRoot, outputs, 'BMAD install required interactive input.');
+      usedFallback = true;
     } else {
       throw error;
     }
   }
 
-  await validateBmadOutputs(outputs);
+  try {
+    await validateBmadOutputs(outputs);
+  } catch (error) {
+    const message = (error as Error).message;
+    if (!usedFallback && isMissingOrEmptyPlanningOutputError(message)) {
+      logInfo('planning: BMAD did not produce required outputs; generating fallback planning artifacts');
+      await writeFallbackPlanningOutputs(
+        ctx.projectRoot,
+        outputs,
+        'BMAD command completed without generating required planning artifacts.',
+      );
+      await validateBmadOutputs(outputs);
+    } else {
+      throw error;
+    }
+  }
   logInfo('planning: BMAD outputs validated');
 }
 
@@ -74,19 +91,18 @@ async function writeFallbackPlanningOutputs(
     architecturePath: string;
     storiesPath: string;
   },
+  reason: string,
 ): Promise<void> {
   const idea = await readIdea(projectRoot);
   await Promise.all([
     writeFile(
       outputs.productBriefPath,
-      ['# Product Brief', '', '> Generated fallback because BMAD install required interactive input.', '', idea].join(
-        '\n',
-      ),
+      ['# Product Brief', '', `> Generated fallback: ${reason}`, '', idea].join('\n'),
       'utf-8',
     ),
     writeFile(
       outputs.prdPath,
-      ['# PRD', '', '> Generated fallback because BMAD install required interactive input.', '', idea].join('\n'),
+      ['# PRD', '', `> Generated fallback: ${reason}`, '', idea].join('\n'),
       'utf-8',
     ),
     writeFile(
@@ -94,7 +110,7 @@ async function writeFallbackPlanningOutputs(
       [
         '# Architecture',
         '',
-        '> Generated fallback because BMAD install required interactive input.',
+        `> Generated fallback: ${reason}`,
         '',
         '## Initial Constraints',
         '- Refine architecture after BMAD becomes available.',
@@ -119,4 +135,9 @@ async function readIdea(projectRoot: string): Promise<string> {
   } catch {
     return 'No idea.md found.';
   }
+}
+
+function isMissingOrEmptyPlanningOutputError(message: string): boolean {
+  const lowered = message.toLowerCase();
+  return lowered.includes('missing') || lowered.includes('empty');
 }

@@ -98,4 +98,25 @@ describe('runPlanning', () => {
     expect(architecture).toContain('Generated fallback');
     expect(stories).toContain('Epic 1: Bootstrap');
   });
+
+  it('falls back when bmad completes but outputs are missing', async () => {
+    const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'bemadralphy-'));
+    await writeFile(path.join(tmpDir, 'idea.md'), '# Idea\n\nNo-op BMAD fallback.\n', 'utf-8');
+    setCommandRunners({
+      commandExists: async (command) => command === 'bmad',
+      runCommand: async () => ({ stdout: '', stderr: '' }),
+    });
+
+    const ctx: PipelineContext = {
+      runId: 'test',
+      mode: 'auto',
+      dryRun: false,
+      projectRoot: tmpDir,
+    };
+
+    await runPlanning(ctx);
+
+    const productBrief = await readFile(path.join(tmpDir, '_bmad-output', 'product-brief.md'), 'utf-8');
+    expect(productBrief).toContain('BMAD command completed without generating required planning artifacts.');
+  });
 });
