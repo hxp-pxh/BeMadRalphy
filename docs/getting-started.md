@@ -87,6 +87,7 @@ This command should:
 If `bd`, `bmad`, `openspec`, or `ralphy` are missing, `init` now completes with warnings and reports what is missing so you can install dependencies incrementally.
 When npm is available, `init` also attempts to auto-install missing `bd`, `bmad`, `openspec`, and `ralphy`, and checks existing installs for available npm updates.
 If npm packages are already installed globally but commands are unresolved, `init` attempts to create `~/.local/bin` shims for those CLIs.
+If BMAD install/update prompts interactively and cannot run unattended, planning falls back to generated `_bmad-output` artifacts with explicit markers so the run can continue.
 
 ### 4) Add your idea
 

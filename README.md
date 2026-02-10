@@ -509,6 +509,11 @@ node dist/cli.js --help
 - If auto-install/update fails, `init` still completes with warnings and reports actionable install hints.
 - Use `bemadralphy doctor` to check readiness before full pipeline runs.
 
+Planning fallback behavior:
+
+- If BMAD install/update enters an interactive prompt and cannot run unattended, BeMadRalphy generates minimal fallback planning artifacts so the pipeline can continue.
+- Fallback files include explicit markers indicating BMAD automation needs to be rerun when non-interactive BMAD workflows are available.
+
 Typical recovery flow:
 
 ```bash

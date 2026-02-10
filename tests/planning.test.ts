@@ -66,4 +66,36 @@ describe('runPlanning', () => {
 
     await expect(runPlanning(ctx)).rejects.toThrow('Missing required CLI "bmad"');
   });
+
+  it('falls back to generated planning outputs when bmad install is interactive', async () => {
+    const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'bemadralphy-'));
+    await writeFile(path.join(tmpDir, 'idea.md'), '# Idea\n\nInteractive BMAD fallback.\n', 'utf-8');
+    setCommandRunners({
+      commandExists: async (command) => command === 'bmad',
+      runCommand: async (command, args = []) => {
+        if (command === 'bmad' && args[0] === 'install') {
+          throw new Error('Install to this directory? Yes / No');
+        }
+        return { stdout: '', stderr: '' };
+      },
+    });
+
+    const ctx: PipelineContext = {
+      runId: 'test',
+      mode: 'auto',
+      dryRun: false,
+      projectRoot: tmpDir,
+    };
+
+    await runPlanning(ctx);
+
+    const productBrief = await readFile(path.join(tmpDir, '_bmad-output', 'product-brief.md'), 'utf-8');
+    const prd = await readFile(path.join(tmpDir, '_bmad-output', 'prd.md'), 'utf-8');
+    const architecture = await readFile(path.join(tmpDir, '_bmad-output', 'architecture.md'), 'utf-8');
+    const stories = await readFile(path.join(tmpDir, '_bmad-output', 'stories', 'epics.md'), 'utf-8');
+    expect(productBrief).toContain('Generated fallback');
+    expect(prd).toContain('Generated fallback');
+    expect(architecture).toContain('Generated fallback');
+    expect(stories).toContain('Epic 1: Bootstrap');
+  });
 });
