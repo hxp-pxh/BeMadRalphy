@@ -68,6 +68,7 @@ src/
 │   ├── cursor.ts           # Cursor adapter
 │   ├── codex.ts            # OpenAI Codex adapter
 │   ├── kimi.ts             # Kimi K2.5 adapter (API-based)
+│   ├── ollama.ts           # Ollama local-model adapter
 │   ├── opencode.ts         # OpenCode adapter
 │   ├── qwen.ts             # Qwen adapter
 │   ├── copilot.ts          # GitHub Copilot adapter
@@ -107,8 +108,13 @@ src/
 │   └── tsconfig.ts         # TypeScript configuration
 │
 ├── state.ts                # Pipeline state management
+├── history.ts              # Run history storage and lookup
+├── config.ts               # .bemadralphyrc / bemad.config.js loading
 ├── cost.ts                 # Cost tracking and budget
-├── errors.ts               # Error recovery and logging
+├── plugins/                # Plugin hooks and custom adapters
+│   ├── index.ts            # Plugin loader/runtime
+│   └── types.ts            # Plugin contract
+├── errors.ts               # Domain error types
 ├── locks.ts                # File reservation/locking
 ├── permissions.ts          # Engine permission profiles
 └── release.ts              # Semantic versioning, git tags
@@ -239,6 +245,8 @@ This enables:
 - Tracking progress across sessions
 - Cost monitoring
 
+Run history is also appended to `.bemadralphy/runs.jsonl` with per-run status, selected options, and replay metadata.
+
 ---
 
 ## BMAD Invocation Strategy
@@ -313,6 +321,7 @@ Core phases run in fail-fast mode:
 | `.bemadralphy/state.yaml`   | Pipeline state                         |
 | `.bemadralphy/cost.log`     | Per-task cost tracking                 |
 | `.bemadralphy/failures.log` | Error logs                             |
+| `.bemadralphy/runs.jsonl`   | Append-only run history + replay data  |
 | `intake.yaml`               | Processed intake decisions             |
 | `tasks.md`                  | Human-readable task list (regenerated) |
 

@@ -5,13 +5,15 @@ import { resolveExecutionPolicy } from '../swarm/detector.js';
 import { runKimiParlBatch } from '../swarm/kimi-parl.js';
 import { BeadsWriter } from '../beads/writer.js';
 import { assertCommandExists, runCommand } from '../utils/exec.js';
-import { logInfo } from '../utils/logging.js';
+import { logInfo, logProgress } from '../utils/logging.js';
 import type { PipelineContext } from './types.js';
 
 export async function executePhase(ctx: PipelineContext): Promise<PipelineContext> {
   logInfo('Phase 6 (execute): swarm-aware task execution');
+  logProgress('phase', 'start', 'execute phase started');
   if (ctx.dryRun) {
     logInfo('execute: dry-run, skipping');
+    logProgress('phase', 'done', 'execute phase skipped due to dry run');
     return ctx;
   }
 
@@ -44,6 +46,7 @@ export async function executePhase(ctx: PipelineContext): Promise<PipelineContex
   } else {
     await runBdReadyLoop(ctx, adapter);
   }
+  logProgress('phase', 'done', 'execute phase completed');
   return ctx;
 }
 
@@ -69,15 +72,33 @@ async function runBdReadyLoop(
     return;
   }
 
+  let completedCount = 0;
   for (const id of ids) {
-    const result = await adapter.execute({ id, title: id }, { cwd: ctx.projectRoot });
+    logProgress('task', 'start', `execute: task ${id} started`, { taskId: id });
+    const result = await adapter.execute({ id, title: id }, { cwd: ctx.projectRoot, dryRun: ctx.dryRun });
     if (result.status === 'success') {
       await writer.close(id);
+      logProgress('task', 'done', `execute: task ${id} completed`, { taskId: id });
     } else if (result.status === 'failed') {
       await writer.update(id, result.error ?? 'task failed');
+      logProgress('task', 'failed', `execute: task ${id} failed`, {
+        taskId: id,
+        error: result.error ?? 'task failed',
+      });
     } else {
       await writer.update(id, result.output ?? 'task skipped');
       logInfo(`execute: task ${id} skipped`);
+      logProgress('task', 'progress', `execute: task ${id} skipped`, { taskId: id });
+    }
+
+    completedCount += 1;
+    if (typeof ctx.budget === 'number') {
+      const estimatedSpent = Number((completedCount * 0.07).toFixed(4));
+      if (estimatedSpent > ctx.budget) {
+        throw new Error(
+          `execute: estimated budget exceeded (${estimatedSpent.toFixed(2)} > ${ctx.budget.toFixed(2)})`,
+        );
+      }
     }
   }
 }

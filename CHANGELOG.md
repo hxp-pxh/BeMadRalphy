@@ -11,14 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial TypeScript scaffolding and CLI placeholders
-- Core module stubs (phases, engines, swarm, Beads, specs)
-- Intake parsing with `.bemadralphy/intake.yaml`
-- Placeholder BMAD outputs under `_bmad-output/`
-- Steering file generation and placeholder Beads sync
-- State and cost persistence stubs
-- `init` scaffolding with Beads/BMAD detection and `status` output
-- Execution uses `bd ready` when Beads and engine CLIs are available
+- Checkpoint-oriented orchestration with `--resume` and `--from-phase`
+- Dry-run preflight summaries with estimated cost range and planned phase list
+- Cost estimation heuristics plus append-only `.bemadralphy/cost.log` entries
+- Config file loading from `.bemadralphyrc` / `bemad.config.js`
+- Structured output mode via `--output json` and progress event logging
+- Run history storage (`.bemadralphy/runs.jsonl`) with `history` and `replay` commands
+- Plugin runtime for custom engine registration and before/after phase hooks
+- Ollama engine adapter (`--engine ollama`) with `OLLAMA_MODEL` support
+- Expanded test coverage for config/history/plugin integration and dry-run behavior
 
 ### Changed
 

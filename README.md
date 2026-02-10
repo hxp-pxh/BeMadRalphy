@@ -138,6 +138,7 @@ flowchart TD
 - `qwen`: `ralphy --qwen --max-iterations 1 <task>`
 - `copilot`: `ralphy --copilot --max-iterations 1 <task>`
 - `gemini`: `gemini <task>`
+- `ollama`: `ollama run <model> <task>` (default model via `OLLAMA_MODEL` or `llama3.2`)
 - `ralphy`: `ralphy --max-iterations 1 <task>`
 
 ---
@@ -172,11 +173,24 @@ npx bemadralphy run --mode auto --engine claude --max-parallel 5 --budget 50
 # Run with execution/audience profiles
 npx bemadralphy run --execution-profile safe --audience-profile product-team
 
+# Preview pipeline and estimated cost without execution
+npx bemadralphy run --dry-run --output json
+
+# Resume a failed/interrupted run
+npx bemadralphy run --resume
+
+# Replay a previous run from history
+npx bemadralphy replay <runId> --from-phase execute
+
 # Explore before planning (optional)
 npx bemadralphy explore "How should I structure authentication?"
 
 # Check pipeline status
 npx bemadralphy status
+
+# Show run history (human or JSON)
+npx bemadralphy history
+npx bemadralphy history --output json
 ```
 
 ---
@@ -292,11 +306,11 @@ your-project/
 
 ---
 
-## Configuration (planned)
+## Configuration
 
 ### `.bemadralphy/state.yaml`
 
-Tracks pipeline state for resumability:
+Tracks pipeline state for resumability and recovery:
 
 ```yaml
 phase: execution
@@ -306,7 +320,37 @@ last_gate: architecture
 tasks_completed: 12
 tasks_total: 24
 cost_usd: 3.47
+status: running
+resumeFromPhase: execute
 ```
+
+### Run defaults via config file
+
+You can define persistent defaults in either `.bemadralphyrc` (YAML/JSON) or `bemad.config.js`.
+
+Example `.bemadralphyrc`:
+
+```yaml
+mode: hybrid
+engine: ollama
+maxParallel: 2
+executionProfile: balanced
+output: text
+plugins:
+  - ./bemad.plugins/local-plugin.mjs
+```
+
+Example `bemad.config.js`:
+
+```js
+export default {
+  mode: 'hybrid',
+  engine: 'ralphy',
+  output: 'json',
+};
+```
+
+CLI flags always override config file values.
 
 ### Flags
 
@@ -322,6 +366,11 @@ cost_usd: 3.47
 | `--brownfield`                    | Force brownfield mode                   |
 | `--swarm native\|process\|off`    | Override swarm detection                |
 | `--create-pr`                     | Create PRs for each task                |
+| `--dry-run`                       | Preflight plan + cost estimate only     |
+| `--resume`                        | Resume from latest checkpoint           |
+| `--from-phase <name>`             | Start at a specific phase               |
+| `--output text\|json`             | Human-readable or structured output     |
+| `--plugin <paths...>`             | Load custom plugin modules              |
 
 ### Execution profiles
 
@@ -405,6 +454,7 @@ node dist/cli.js --help
 - BMAD CLI (`bmad`)
 - Beads CLI (`bd`)
 - OpenSpec CLI (`openspec`)
+- Optional local engine: Ollama (`ollama`) when using `--engine ollama`
 
 ## Fail-Fast Behavior
 

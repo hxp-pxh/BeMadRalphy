@@ -4,6 +4,11 @@ import { parse, stringify } from 'yaml';
 
 export type PipelineState = {
   phase: string;
+  lastCompletedPhase?: string;
+  failedPhase?: string;
+  status?: 'running' | 'failed' | 'completed';
+  resumeFromPhase?: string;
+  lastError?: string;
   mode: 'auto' | 'hybrid' | 'supervised';
   engine?: string;
   executionProfile?: 'safe' | 'balanced' | 'fast';
@@ -13,6 +18,9 @@ export type PipelineState = {
   tasksTotal?: number;
   costUsd?: number;
   startedAt?: string;
+  updatedAt?: string;
+  finishedAt?: string;
+  runId?: string;
 };
 
 export async function loadState(projectRoot: string): Promise<PipelineState | null> {

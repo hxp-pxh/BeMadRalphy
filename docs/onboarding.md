@@ -125,6 +125,12 @@ echo "A simple todo app with local storage" > idea.md
 
 # Run full pipeline (default engine uses Ralphy adapter)
 bemadralphy run --mode auto --engine ralphy
+
+# Preflight only (no execution spend)
+bemadralphy run --dry-run --output json
+
+# Resume from checkpoint
+bemadralphy run --resume
 ```
 
 ### Fail-fast guarantees
@@ -257,16 +263,25 @@ docs: update onboarding guide with test instructions
 1. Create `src/engines/new-engine.ts`
 2. Implement the `EngineAdapter` interface
 3. Register in `src/engines/index.ts`
-4. Add tests in `src/engines/new-engine.test.ts`
+4. Add tests in `tests/engines/adapters.test.ts` (or a dedicated file under `tests/engines/`)
 5. Update README with engine support
+
+For local model support, use the `ollama` adapter and set `OLLAMA_MODEL` if you want a non-default model.
 
 ### Add a new pipeline phase
 
 1. Create `src/phases/new-phase.ts`
 2. Export the phase function
-3. Wire into the orchestrator in `src/cli.ts`
+3. Wire into the phase list in `src/orchestrator.ts`
 4. Add tests
 5. Update architecture docs
+
+### Add a plugin extension
+
+1. Create a plugin module (for example `plugins/my-plugin.mjs`).
+2. Export a plugin object with `name` and `register(api)`.
+3. Use `api.registerEngine(...)` for custom engines and `api.onBeforePhase(...)` / `api.onAfterPhase(...)` for hooks.
+4. Load it with `bemadralphy run --plugin ./plugins/my-plugin.mjs` or via config (`plugins: [...]`).
 
 ### Update steering file templates
 

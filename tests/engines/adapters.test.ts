@@ -14,7 +14,7 @@ describe('engine adapters', () => {
     setCommandRunners({
       commandExists: async (command) => {
         existenceChecks.push(command);
-        return ['ralphy', 'gemini', 'kimi'].includes(command);
+        return ['ralphy', 'gemini', 'kimi', 'ollama'].includes(command);
       },
       runCommand: async (command, args = []) => {
         calls.push({ command, args });
@@ -33,6 +33,7 @@ describe('engine adapters', () => {
     await expect(engineAdapters.ralphy.checkAvailable()).resolves.toBe(true);
     await expect(engineAdapters.gemini.checkAvailable()).resolves.toBe(true);
     await expect(engineAdapters.kimi.checkAvailable()).resolves.toBe(true);
+    await expect(engineAdapters.ollama.checkAvailable()).resolves.toBe(true);
 
     await engineAdapters.claude.execute(task, { cwd: '/tmp/project' });
     await engineAdapters.codex.execute(task, { cwd: '/tmp/project' });
@@ -43,10 +44,12 @@ describe('engine adapters', () => {
     await engineAdapters.ralphy.execute(task, { cwd: '/tmp/project' });
     await engineAdapters.gemini.execute(task, { cwd: '/tmp/project' });
     await engineAdapters.kimi.execute(task, { cwd: '/tmp/project' });
+    await engineAdapters.ollama.execute(task, { cwd: '/tmp/project' });
 
     expect(existenceChecks).toContain('ralphy');
     expect(existenceChecks).toContain('gemini');
     expect(existenceChecks).toContain('kimi');
+    expect(existenceChecks).toContain('ollama');
 
     expect(calls.some((call) => call.command === 'ralphy' && call.args.includes('--claude'))).toBe(true);
     expect(calls.some((call) => call.command === 'ralphy' && call.args.includes('--codex'))).toBe(true);
@@ -56,6 +59,7 @@ describe('engine adapters', () => {
     expect(calls.some((call) => call.command === 'ralphy' && call.args.includes('--qwen'))).toBe(true);
     expect(calls.some((call) => call.command === 'gemini')).toBe(true);
     expect(calls.some((call) => call.command === 'kimi')).toBe(true);
+    expect(calls.some((call) => call.command === 'ollama' && call.args[0] === 'run')).toBe(true);
   });
 
   it('returns clear failure message when command execution fails', async () => {
