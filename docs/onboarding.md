@@ -3,9 +3,12 @@
 Welcome to BeMadRalphy! This guide will help you get set up for local development.
 
 > The repository now runs end-to-end with external CLIs. Install all required CLIs before running the pipeline.
+>
+> If you want to run BeMadRalphy as a local user/operator, start with `docs/getting-started.md`.
 
 ## Table of Contents
 
+- [Who this guide is for](#who-this-guide-is-for)
 - [Prerequisites](#prerequisites)
 - [Setup](#setup)
 - [Running Locally](#running-locally)
@@ -14,6 +17,14 @@ Welcome to BeMadRalphy! This guide will help you get set up for local developmen
 - [Key Conventions](#key-conventions)
 - [Common Tasks](#common-tasks)
 - [Troubleshooting](#troubleshooting)
+
+---
+
+## Who This Guide Is For
+
+Use this document if you are developing inside the BeMadRalphy repository (tests, code changes, docs updates).
+
+If you are running your first local product pipeline in a target project, use `docs/getting-started.md` first.
 
 ---
 

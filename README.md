@@ -22,6 +22,14 @@ Current implementation includes:
 
 ---
 
+## Start Here
+
+- First local run guide: [`docs/getting-started.md`](docs/getting-started.md)
+- Contributor/developer setup: [`docs/onboarding.md`](docs/onboarding.md)
+- Architecture and flow details: [`docs/architecture.md`](docs/architecture.md)
+
+---
+
 ## What is BeMadRalphy?
 
 BeMadRalphy is a CLI orchestrator that merges:
@@ -302,6 +310,8 @@ cost_usd: 3.47
 
 ## Installation
 
+For the fastest end-to-end setup path, use [`docs/getting-started.md`](docs/getting-started.md).
+
 ### Install required external CLIs
 
 ```bash
@@ -386,6 +396,8 @@ echo "A todo app with real-time sync and offline support" > idea.md
 # 4. Run the pipeline
 npx bemadralphy run
 ```
+
+For full expected outputs and fail-fast troubleshooting, see [`docs/getting-started.md`](docs/getting-started.md).
 
 That's it. BeMadRalphy will:
 
