@@ -1,9 +1,11 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { PipelineContext } from '../phases/types.js';
-import { assertCommandExists, runCommand } from '../utils/exec.js';
+import { assertCommandExists, runCommandWithTimeout } from '../utils/exec.js';
 import { logInfo } from '../utils/logging.js';
 import { validateBmadOutputs } from './validate.js';
+
+const BMAD_INSTALL_TIMEOUT_MS = 30_000;
 
 export async function runPlanning(ctx: PipelineContext): Promise<void> {
   const outputDir = path.join(ctx.projectRoot, '_bmad-output');
@@ -25,7 +27,7 @@ export async function runPlanning(ctx: PipelineContext): Promise<void> {
   await assertCommandExists('bmad', 'Install with: npm install -g bmad-method');
   let usedFallback = false;
   try {
-    await runCommand(
+    await runCommandWithTimeout(
       'bmad',
       [
         'install',
@@ -40,13 +42,18 @@ export async function runPlanning(ctx: PipelineContext): Promise<void> {
         '--yes',
       ],
       ctx.projectRoot,
+      BMAD_INSTALL_TIMEOUT_MS,
     );
     logInfo('planning: BMAD install/update completed');
   } catch (error) {
     const message = (error as Error).message;
-    if (isLikelyInteractiveInstallError(message)) {
-      logInfo('planning: BMAD install appears interactive; generating fallback planning artifacts');
-      await writeFallbackPlanningOutputs(ctx.projectRoot, outputs, 'BMAD install required interactive input.');
+    if (isLikelyAutomationBlockedError(message)) {
+      logInfo('planning: BMAD install was blocked (interactive/timeout); generating fallback planning artifacts');
+      await writeFallbackPlanningOutputs(
+        ctx.projectRoot,
+        outputs,
+        'BMAD install was blocked in unattended mode (interactive prompt or timeout).',
+      );
       usedFallback = true;
     } else {
       throw error;
@@ -72,14 +79,16 @@ export async function runPlanning(ctx: PipelineContext): Promise<void> {
   logInfo('planning: BMAD outputs validated');
 }
 
-function isLikelyInteractiveInstallError(message: string): boolean {
+function isLikelyAutomationBlockedError(message: string): boolean {
   const lowered = message.toLowerCase();
   return (
     lowered.includes('install to this directory') ||
     lowered.includes('yes / no') ||
     lowered.includes('prompt') ||
     lowered.includes('tty') ||
-    lowered.includes('interactive')
+    lowered.includes('interactive') ||
+    lowered.includes('timed out') ||
+    lowered.includes('code=124')
   );
 }
 

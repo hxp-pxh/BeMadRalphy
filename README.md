@@ -511,7 +511,7 @@ node dist/cli.js --help
 
 Planning fallback behavior:
 
-- If BMAD install/update enters an interactive prompt and cannot run unattended, BeMadRalphy generates minimal fallback planning artifacts so the pipeline can continue.
+- If BMAD install/update enters an interactive prompt or times out in unattended mode, BeMadRalphy generates minimal fallback planning artifacts so the pipeline can continue.
 - If BMAD exits successfully but still leaves missing/empty planning artifacts, the same fallback is generated.
 - Fallback files include explicit markers indicating BMAD automation needs to be rerun when non-interactive BMAD workflows are available.
 

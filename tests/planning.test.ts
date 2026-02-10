@@ -99,6 +99,32 @@ describe('runPlanning', () => {
     expect(stories).toContain('Epic 1: Bootstrap');
   });
 
+  it('falls back when bmad install times out in unattended mode', async () => {
+    const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'bemadralphy-'));
+    await writeFile(path.join(tmpDir, 'idea.md'), '# Idea\n\nTimeout fallback.\n', 'utf-8');
+    setCommandRunners({
+      commandExists: async (command) => command === 'bmad',
+      runCommand: async (command, args = []) => {
+        if (command === 'bmad' && args[0] === 'install') {
+          throw new Error('Command timed/failed (bmad install ...) [code=124]: timed out');
+        }
+        return { stdout: '', stderr: '' };
+      },
+    });
+
+    const ctx: PipelineContext = {
+      runId: 'test',
+      mode: 'auto',
+      dryRun: false,
+      projectRoot: tmpDir,
+    };
+
+    await runPlanning(ctx);
+
+    const productBrief = await readFile(path.join(tmpDir, '_bmad-output', 'product-brief.md'), 'utf-8');
+    expect(productBrief).toContain('blocked in unattended mode');
+  });
+
   it('falls back when bmad completes but outputs are missing', async () => {
     const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'bemadralphy-'));
     await writeFile(path.join(tmpDir, 'idea.md'), '# Idea\n\nNo-op BMAD fallback.\n', 'utf-8');
