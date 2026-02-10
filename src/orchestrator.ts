@@ -374,13 +374,15 @@ function stateFrom(
   lastError?: string,
 ) {
   const phaseIndex = PHASES.findIndex((entry) => entry.name === phase);
-  const resumeFromPhase = phaseIndex >= 0 ? PHASES[phaseIndex + 1]?.name : undefined;
+  const nextPhase = phaseIndex >= 0 ? PHASES[phaseIndex + 1]?.name : undefined;
+  const resumeFromPhase =
+    status === 'completed' ? undefined : status === 'failed' ? phase : nextPhase;
   return {
     phase,
     status,
     lastCompletedPhase: status === 'failed' ? undefined : phase,
     failedPhase: status === 'failed' ? phase : undefined,
-    resumeFromPhase: status === 'completed' ? undefined : resumeFromPhase ?? phase,
+    resumeFromPhase,
     lastError,
     mode: ctx.mode,
     engine: ctx.engine,
@@ -483,11 +485,11 @@ function resolveStartPhase(
   if (options.fromPhase && isPipelinePhase(options.fromPhase)) {
     return options.fromPhase;
   }
-  if (options.resume && state?.resumeFromPhase && isPipelinePhase(state.resumeFromPhase)) {
-    return state.resumeFromPhase;
-  }
   if (options.resume && state?.failedPhase && isPipelinePhase(state.failedPhase)) {
     return state.failedPhase;
+  }
+  if (options.resume && state?.resumeFromPhase && isPipelinePhase(state.resumeFromPhase)) {
+    return state.resumeFromPhase;
   }
   if (options.resume && state?.lastCompletedPhase && isPipelinePhase(state.lastCompletedPhase)) {
     const index = PHASES.findIndex((phase) => phase.name === state.lastCompletedPhase);

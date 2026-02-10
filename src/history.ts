@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 export type RunHistoryRecord = {
@@ -23,8 +23,7 @@ export async function appendRunHistory(
 ): Promise<void> {
   const fullPath = path.join(projectRoot, ...RUNS_PATH);
   await mkdir(path.dirname(fullPath), { recursive: true });
-  const existing = await safeRead(fullPath);
-  await writeFile(fullPath, `${existing}${JSON.stringify(record)}\n`, 'utf-8');
+  await appendFile(fullPath, `${JSON.stringify(record)}\n`, 'utf-8');
 }
 
 export async function readRunHistory(projectRoot: string): Promise<RunHistoryRecord[]> {
@@ -45,8 +44,12 @@ export async function findRunHistory(
   runId: string,
 ): Promise<RunHistoryRecord | null> {
   const rows = await readRunHistory(projectRoot);
-  const found = rows.find((row) => row.runId === runId);
-  return found ?? null;
+  for (let index = rows.length - 1; index >= 0; index -= 1) {
+    if (rows[index].runId === runId) {
+      return rows[index];
+    }
+  }
+  return null;
 }
 
 async function safeRead(filePath: string): Promise<string> {

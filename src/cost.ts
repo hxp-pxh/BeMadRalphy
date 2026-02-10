@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { runCommand } from './utils/exec.js';
 
@@ -17,12 +17,11 @@ export class CostTracker {
     const dir = path.join(projectRoot, '.bemadralphy');
     await mkdir(dir, { recursive: true });
     const costPath = path.join(dir, 'cost.log');
-    const existing = await safeRead(costPath);
     const row = JSON.stringify({
       ts: new Date().toISOString(),
       totalUsd: Number(this.totalUsd.toFixed(4)),
     });
-    await writeFile(costPath, `${existing}${row}\n`, 'utf-8');
+    await appendFile(costPath, `${row}\n`, 'utf-8');
   }
 }
 
@@ -60,14 +59,6 @@ async function estimateReadyTasks(projectRoot: string): Promise<number> {
     return new Set(ids).size;
   } catch {
     return 0;
-  }
-}
-
-async function safeRead(filePath: string): Promise<string> {
-  try {
-    return await readFile(filePath, 'utf-8');
-  } catch {
-    return '';
   }
 }
 

@@ -324,6 +324,19 @@ status: running
 resumeFromPhase: execute
 ```
 
+Resume and replay behavior:
+
+- `--resume` retries the failed phase when a run fails.
+- `--resume` starts at the next phase when the previous phase completed successfully.
+- completed runs clear `resumeFromPhase`, so a later `--resume` starts fresh instead of re-running `post`.
+- `replay <runId>` resolves from the latest run-history record for that `runId` (not the first row).
+
+Run/cost logs are append-only JSONL and use atomic append writes:
+
+- `.bemadralphy/runs.jsonl` (history)
+- `.bemadralphy/cost.log` (cost tracking)
+- `.bemadralphy/failures.log` (phase failures)
+
 ### Run defaults via config file
 
 You can define persistent defaults in either `.bemadralphyrc` (YAML/JSON) or `bemad.config.js`.
