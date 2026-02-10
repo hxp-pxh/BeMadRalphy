@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [main, full-go-real-clis]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -20,11 +20,21 @@ jobs:
 
       - name: Install and build
         run: |
-          npm install
+          npm ci
           npm run build
           npm test
 
+      - name: Check deploy secrets
+        id: deploy_secrets
+        run: |
+          if [ -n "${{ secrets.VPS_HOST }}" ] && [ -n "${{ secrets.VPS_USER }}" ] && [ -n "${{ secrets.VPS_SSH_KEY }}" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Deploy to VPS
+        if: steps.deploy_secrets.outputs.ready == 'true'
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -38,3 +48,8 @@ jobs:
             sudo docker build -t bemadralphy:latest .
             sudo docker tag bemadralphy:latest ghcr.io/hxp-pxh/bemadralphy:latest
             echo "✅ Deployed ${{ github.sha }} at $(date)"
+
+      - name: Skip deploy (missing secrets)
+        if: steps.deploy_secrets.outputs.ready != 'true'
+        run: |
+          echo "Skipping deploy: missing VPS_HOST/VPS_USER/VPS_SSH_KEY secrets."
