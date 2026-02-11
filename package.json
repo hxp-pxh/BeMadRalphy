@@ -1,6 +1,6 @@
 {
   "name": "bemadralphy",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "CLI-only orchestrator merging BMAD, Beads, Ralphy, and OpenSpec into an end-to-end automated coding pipeline.",
   "license": "MIT",
   "type": "module",
