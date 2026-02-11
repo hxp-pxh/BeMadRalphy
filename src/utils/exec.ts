@@ -135,3 +135,25 @@ export async function assertCommandExists(command: string, hint?: string): Promi
     );
   }
 }
+
+export async function runCommandSafe(
+  command: string,
+  args: string[] = [],
+  cwd?: string,
+): Promise<{ code: number; stdout: string; stderr: string }> {
+  try {
+    const result = await execFileAsync(command, args, { cwd });
+    return { code: 0, stdout: result.stdout ?? '', stderr: result.stderr ?? '' };
+  } catch (error) {
+    const err = error as {
+      code?: number;
+      stdout?: string;
+      stderr?: string;
+    };
+    return {
+      code: typeof err.code === 'number' ? err.code : 1,
+      stdout: err.stdout ?? '',
+      stderr: err.stderr ?? '',
+    };
+  }
+}
