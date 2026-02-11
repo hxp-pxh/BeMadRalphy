@@ -1,6 +1,6 @@
 {
   "name": "bemadralphy",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "CLI-only orchestrator merging BMAD, Beads, Ralphy, and OpenSpec into an end-to-end automated coding pipeline.",
   "license": "MIT",
   "type": "module",
@@ -13,7 +13,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && mkdir -p dist/templates",
     "dev": "tsx watch src/cli.ts",
     "start": "node dist/cli.js",
     "lint": "eslint .",
@@ -22,7 +22,8 @@
     "verify": "npm run typecheck && npm run lint && npm test -- --run",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "postbuild": "cp -r src/templates/*.prompt.md dist/templates/ && cp -r src/templates/execution dist/templates/"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
