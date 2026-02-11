@@ -1,6 +1,7 @@
 import { AnthropicProvider } from './anthropic.js';
 import { OllamaProvider } from './ollama.js';
 import { OpenAiProvider } from './openai.js';
+import { OpenRouterProvider } from './openrouter.js';
 import type { AIProvider, CompletionOptions } from './provider.js';
 
 class FallbackProvider implements AIProvider {
@@ -31,26 +32,33 @@ class FallbackProvider implements AIProvider {
   }
 }
 
-function getAnthropicApiKey(): string | undefined {
-  const raw = process.env.ANTHROPIC_API_KEY;
-  return typeof raw === 'string' ? raw.trim() || undefined : undefined;
-}
-
-function getOpenAiApiKey(): string | undefined {
-  const raw = process.env.OPENAI_API_KEY;
+function getEnvKey(name: string): string | undefined {
+  const raw = process.env[name];
   return typeof raw === 'string' ? raw.trim() || undefined : undefined;
 }
 
 export function createAIProvider(model?: string): AIProvider {
   const providers: AIProvider[] = [];
-  const anthropicKey = getAnthropicApiKey();
+  
+  // OpenRouter first (default) - supports free models and paid models
+  const openrouterKey = getEnvKey('OPENROUTER_API_KEY');
+  if (openrouterKey) {
+    providers.push(new OpenRouterProvider(openrouterKey));
+  }
+  
+  // Anthropic direct API (requires separate billing)
+  const anthropicKey = getEnvKey('ANTHROPIC_API_KEY');
   if (anthropicKey) {
     providers.push(new AnthropicProvider(anthropicKey));
   }
-  const openaiKey = getOpenAiApiKey();
+  
+  // OpenAI
+  const openaiKey = getEnvKey('OPENAI_API_KEY');
   if (openaiKey) {
     providers.push(new OpenAiProvider(openaiKey));
   }
+  
+  // Ollama (local, always available as fallback)
   providers.push(new OllamaProvider());
 
   const fallback = new FallbackProvider(providers);

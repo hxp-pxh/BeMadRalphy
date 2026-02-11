@@ -418,7 +418,7 @@ export async function runResume(options: Partial<RunOptions> = {}): Promise<void
 
 export async function runDoctor(output: OutputFormat = 'text'): Promise<void> {
   configureLogger({ outputFormat: output });
-  const hasApiKey = Boolean(process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY);
+  const hasApiKey = Boolean(process.env.OPENROUTER_API_KEY || process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY);
   let sqliteOk = true;
   try {
     await TaskManager.create(process.cwd());
@@ -438,7 +438,7 @@ export async function runDoctor(output: OutputFormat = 'text'): Promise<void> {
       name: 'ai_api_keys',
       required: true,
       installed: hasApiKey,
-      hint: hasApiKey ? undefined : 'Set ANTHROPIC_API_KEY or OPENAI_API_KEY.',
+      hint: hasApiKey ? undefined : 'Set OPENROUTER_API_KEY, ANTHROPIC_API_KEY, or OPENAI_API_KEY.',
     }),
     Promise.resolve({
       name: 'sqlite',
