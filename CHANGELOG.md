@@ -21,6 +21,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ollama engine adapter (`--engine ollama`) with `OLLAMA_MODEL` support
 - Expanded test coverage for config/history/plugin integration and dry-run behavior
 
+## [2.0.6] - 2026-02-11
+
+### Fixed
+
+- **Scaffold phase**: Now actually runs `git init` (was a stub that only logged)
+- **Claude teams execution**: Generates checkbox-format PRD.md from task database for ralphy compatibility
+- **Claude teams execution**: Calculates `--max-iterations` from task count instead of hardcoded `1`
+- **Claude teams execution**: Creates initial commit before running ralphy parallel mode
+- **Exec utilities**: Added `runCommandSafe` for non-throwing command execution
+
+### Changed
+
+- Execute phase now properly bridges task database to ralphy's expected PRD.md format
+- E2E verified: Claude agents now generate real code with tests
+
+## [2.0.5] - 2026-02-11
+
+### Fixed
+
+- **Beads adapter**: Task descriptions now include Step 1-5 implementation details (previously discarded, leaving only story titles)
+
+## [2.0.4] - 2026-02-10
+
+### Fixed
+
+- **Planning phase**: Copies `_bmad-output/prd.md` to `PRD.md` at project root for ralphy compatibility
+
+## [2.0.3] - 2026-02-10
+
+### Added
+
+- **OpenRouter provider**: Added as default AI provider, uses existing OpenClaw API key
+- Provider priority chain: OpenRouter → Anthropic → OpenAI → Ollama
+
+## [2.0.2] - 2026-02-10
+
+### Added
+
+- **Environment loading**: Loads `.env` file at CLI startup via `dotenv/config`
+
+## [2.0.1] - 2026-02-10
+
+### Fixed
+
+- **Template build**: `postbuild` script now copies `.prompt.md` files to `dist/templates/`
+
+
 ## [2.0.0] - 2026-02-10
 
 ### Added
