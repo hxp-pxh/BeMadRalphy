@@ -31,13 +31,25 @@ class FallbackProvider implements AIProvider {
   }
 }
 
+function getAnthropicApiKey(): string | undefined {
+  const raw = process.env.ANTHROPIC_API_KEY;
+  return typeof raw === 'string' ? raw.trim() || undefined : undefined;
+}
+
+function getOpenAiApiKey(): string | undefined {
+  const raw = process.env.OPENAI_API_KEY;
+  return typeof raw === 'string' ? raw.trim() || undefined : undefined;
+}
+
 export function createAIProvider(model?: string): AIProvider {
   const providers: AIProvider[] = [];
-  if (process.env.ANTHROPIC_API_KEY) {
-    providers.push(new AnthropicProvider(process.env.ANTHROPIC_API_KEY));
+  const anthropicKey = getAnthropicApiKey();
+  if (anthropicKey) {
+    providers.push(new AnthropicProvider(anthropicKey));
   }
-  if (process.env.OPENAI_API_KEY) {
-    providers.push(new OpenAiProvider(process.env.OPENAI_API_KEY));
+  const openaiKey = getOpenAiApiKey();
+  if (openaiKey) {
+    providers.push(new OpenAiProvider(openaiKey));
   }
   providers.push(new OllamaProvider());
 

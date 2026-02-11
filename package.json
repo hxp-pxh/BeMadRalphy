@@ -1,6 +1,6 @@
 {
   "name": "bemadralphy",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "CLI-only orchestrator merging BMAD, Beads, Ralphy, and OpenSpec into an end-to-end automated coding pipeline.",
   "license": "MIT",
   "type": "module",
@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
+    "dotenv": "^16.4.5",
     "better-sqlite3": "^12.6.2",
     "commander": "^12.1.0",
     "openai": "^6.21.0",
